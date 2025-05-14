@@ -34,18 +34,20 @@ export default function CreatePost() {
     setIsSubmitting(true);
 
     try {
+      // Format the post data properly
       const postData = {
-        title,
-        content,
-        featured_image: featuredImage || undefined
+        title: title.trim(),
+        content: content.trim(),
+        featured_image: featuredImage.trim() || null // Use null if empty
       };
 
+      console.log("Sending post data:", postData); // Debug log to see what's being sent
       const post = await createPost(postData);
       toast.success("Post created successfully!");
       navigate(`/post/${post.id}`);
     } catch (error) {
       console.error("Failed to create post:", error);
-      toast.error("Failed to create post");
+      toast.error("Failed to create post. Please check your inputs and try again.");
     } finally {
       setIsSubmitting(false);
     }
