@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,12 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				blog: {
+					primary: '#3B82F6',
+					secondary: '#1E40AF',
+					accent: '#DBEAFE',
+					muted: '#F3F4F6',
 				}
 			},
 			borderRadius: {
@@ -84,11 +91,42 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.5s ease-out'
+			},
+			typography: {
+				DEFAULT: {
+					css: {
+						maxWidth: '100ch',
+						color: 'hsl(var(--foreground))',
+						h1: {
+							fontWeight: '700',
+						},
+						h2: {
+							fontWeight: '600',
+						},
+						h3: {
+							fontWeight: '500',
+						},
+						code: {
+							color: 'hsl(var(--primary))',
+							background: 'hsl(var(--muted))',
+							borderRadius: '0.25rem',
+							paddingLeft: '0.25rem',
+							paddingRight: '0.25rem',
+							paddingTop: '0.125rem',
+							paddingBottom: '0.125rem',
+						}
+					}
+				}
 			}
 		}
 	},
