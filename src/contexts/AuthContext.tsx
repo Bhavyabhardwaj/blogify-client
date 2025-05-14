@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { User } from '../types';
 import api from '@/lib/api';
@@ -28,7 +27,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     if (storedToken && storedUser) {
       setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Failed to parse user data:', error);
+        // Clear invalid data
+        localStorage.removeItem('user');
+      }
     }
     
     setIsLoading(false);
