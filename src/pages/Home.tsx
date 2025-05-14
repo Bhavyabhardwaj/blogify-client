@@ -20,9 +20,16 @@ export default function Home() {
     const fetchPosts = async () => {
       try {
         const allPosts = await getAllPosts();
-        setPosts(allPosts);
+        // Ensure posts is an array before setting state
+        if (Array.isArray(allPosts)) {
+          setPosts(allPosts);
+        } else {
+          console.error("Expected array of posts but received:", allPosts);
+          setPosts([]);
+        }
       } catch (error) {
         console.error("Error fetching posts:", error);
+        setPosts([]); // Initialize with empty array on error
       } finally {
         setIsLoading(false);
       }
@@ -118,8 +125,9 @@ export default function Home() {
     );
   }
 
-  const featuredPost = posts.length > 0 ? posts[0] : null;
-  const regularPosts = posts.slice(1);
+  // Safely handle posts - ensure it's an array before using slice
+  const featuredPost = Array.isArray(posts) && posts.length > 0 ? posts[0] : null;
+  const regularPosts = Array.isArray(posts) ? posts.slice(1) : [];
 
   return (
     <div>
