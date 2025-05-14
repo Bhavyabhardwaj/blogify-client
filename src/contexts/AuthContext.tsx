@@ -12,7 +12,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
-  updateProfile: (data: { name?: string; bio?: string }) => Promise<void>;
+  updateProfile: (data: { name?: string; bio?: string; avatar?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     toast.success("Logged out successfully");
   };
 
-  const updateProfile = async (data: { name?: string; bio?: string }) => {
+  const updateProfile = async (data: { name?: string; bio?: string; avatar?: string }) => {
     try {
       const response = await api.put('/user/updateUserProfile', data);
       const updatedUser = response.data;
