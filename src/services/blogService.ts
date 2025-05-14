@@ -1,3 +1,4 @@
+
 import api from '@/lib/api';
 import { Post, PostCreateData, PostUpdateData } from '@/types';
 
@@ -22,16 +23,26 @@ export const getPostById = async (id: string): Promise<Post> => {
 };
 
 export const createPost = async (postData: PostCreateData): Promise<Post> => {
-  // Format the data according to the API requirements
-  const formattedData = {
-    title: postData.title,
-    content: postData.content,
-    featured_image: postData.featured_image || null, // Ensure null instead of undefined
-    tagIds: postData.tagIds || [] // Ensure we always send an array even if empty
-  };
-
-  const response = await api.post('/posts', formattedData);
-  return response.data;
+  try {
+    console.log("Original post data:", postData);
+    
+    // Format the data according to the API requirements
+    const formattedData = {
+      title: postData.title,
+      content: postData.content,
+      featured_image: postData.featured_image || null, // Ensure null instead of undefined
+      tagIds: postData.tagIds || [] // Ensure we always send an array even if empty
+    };
+    
+    console.log("Formatted post data being sent to API:", JSON.stringify(formattedData));
+    
+    const response = await api.post('/posts', formattedData);
+    console.log("API response:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error from API:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 export const updatePost = async (postData: PostUpdateData): Promise<Post> => {

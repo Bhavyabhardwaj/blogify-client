@@ -26,7 +26,7 @@ export default function CreatePost() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title || !content) {
+    if (!title.trim() || !content.trim()) {
       toast.error("Title and content are required");
       return;
     }
@@ -45,9 +45,10 @@ export default function CreatePost() {
       const post = await createPost(postData);
       toast.success("Post created successfully!");
       navigate(`/post/${post.id}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to create post:", error);
-      toast.error("Failed to create post. Please check your inputs and try again.");
+      const errorMessage = error.response?.data?.message || "Failed to create post. Please check your inputs and try again.";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

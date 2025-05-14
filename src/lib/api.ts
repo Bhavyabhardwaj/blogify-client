@@ -20,6 +20,8 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Log outgoing requests for debugging
+    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`, config.data || '');
     return config;
   },
   (error) => Promise.reject(error)
@@ -27,10 +29,16 @@ api.interceptors.request.use(
 
 // Axios response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log successful responses
+    console.log(`API Response: ${response.status} ${response.config.url}`, response.data);
+    return response;
+  },
   (error) => {
     const message = error.response?.data?.message || 'An error occurred';
+    console.error('API Error:', error.response?.status, message, error.response?.data);
     toast.error(message);
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
