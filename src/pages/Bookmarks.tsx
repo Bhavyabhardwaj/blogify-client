@@ -1,50 +1,54 @@
 
 import { useState, useEffect } from "react";
-import { getBookmarks, removeBookmark } from "@/services/blogService";
+import { getBookmarks, removeBookmark, bookmarkPost } from "@/services/blogService";
 import { Post } from "@/types";
 import { PostCard } from "@/components/blog/PostCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 export default function Bookmarks() {
   const [bookmarks, setBookmarks] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchBookmarks = async () => {
-      if (!isAuthenticated) {
-        navigate("/login");
-        return;
-      }
+  const fetchBookmarks = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
 
-      try {
-        console.log("Starting to fetch bookmarks");
-        const userBookmarks = await getBookmarks();
-        console.log("Finished fetching bookmarks:", userBookmarks);
-        
-        if (Array.isArray(userBookmarks)) {
-          setBookmarks(userBookmarks);
-          if (userBookmarks.length === 0) {
-            console.log("No bookmarks found for user");
-          }
-        } else {
-          console.error("Expected array but received:", userBookmarks);
-          setError("Received invalid data from server");
+    try {
+      console.log("Starting to fetch bookmarks");
+      const userBookmarks = await getBookmarks();
+      console.log("Finished fetching bookmarks:", userBookmarks);
+      
+      if (Array.isArray(userBookmarks)) {
+        setBookmarks(userBookmarks);
+        if (userBookmarks.length === 0) {
+          console.log("No bookmarks found for user");
         }
-      } catch (error) {
-        console.error("Error fetching bookmarks:", error);
-        setError("Failed to load your bookmarks");
-        toast.error("Failed to load your bookmarks");
-      } finally {
-        setIsLoading(false);
+      } else {
+        console.error("Expected array but received:", userBookmarks);
+        setError("Received invalid data from server");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching bookmarks:", error);
+      setError("Failed to load your bookmarks");
+      toast.error("Failed to load your bookmarks");
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
+  useEffect(() => {
     fetchBookmarks();
   }, [isAuthenticated, navigate]);
 
@@ -57,6 +61,12 @@ export default function Bookmarks() {
       console.error("Error removing bookmark:", error);
       toast.error("Failed to remove bookmark");
     }
+  };
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setError(null);
+    fetchBookmarks();
   };
 
   if (isLoading) {
@@ -86,7 +96,11 @@ export default function Bookmarks() {
           <p className="text-muted-foreground mb-4">
             There was an error retrieving your bookmarks. Please try again later.
           </p>
-          <Button onClick={() => window.location.reload()}>
+          <Button 
+            onClick={handleRefresh} 
+            disabled={isRefreshing}
+          >
+            {isRefreshing && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
             Try Again
           </Button>
         </div>
@@ -96,9 +110,19 @@ export default function Bookmarks() {
 
   return (
     <div className="py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Bookmarked Posts</h1>
-        <p className="text-muted-foreground">Posts you've saved for later</p>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Bookmarked Posts</h1>
+          <p className="text-muted-foreground">Posts you've saved for later</p>
+        </div>
+        <Button 
+          variant="outline" 
+          onClick={handleRefresh} 
+          disabled={isRefreshing}
+        >
+          {isRefreshing && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+          Refresh
+        </Button>
       </div>
 
       {bookmarks.length > 0 ? (

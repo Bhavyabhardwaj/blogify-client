@@ -1,4 +1,3 @@
-
 import api from '@/lib/api';
 import { Post, PostCreateData, PostUpdateData } from '@/types';
 
@@ -26,8 +25,26 @@ export const getAllPosts = async (): Promise<Post[]> => {
 };
 
 export const getUserPosts = async (): Promise<Post[]> => {
-  const response = await api.get('/posts');
-  return response.data;
+  try {
+    console.log("Fetching user posts");
+    const response = await api.get('/posts');
+    console.log("User posts response:", response.data);
+    
+    // Handle different response formats
+    if (response.data && typeof response.data === 'object') {
+      if (Array.isArray(response.data.posts)) {
+        return response.data.posts;
+      } else if (Array.isArray(response.data)) {
+        return response.data;
+      }
+    }
+    
+    console.warn("Unexpected user posts response format:", response.data);
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error("Error fetching user posts:", error);
+    throw error;
+  }
 };
 
 export const getPostById = async (id: string): Promise<Post> => {
@@ -69,16 +86,47 @@ export const deletePost = async (id: string): Promise<void> => {
 };
 
 export const likePost = async (id: string): Promise<void> => {
-  await api.post(`/likes/${id}`);
+  try {
+    console.log(`Liking post with ID: ${id}`);
+    const response = await api.post(`/likes/${id}`);
+    console.log("Like post response:", response.data);
+  } catch (error) {
+    console.error("Error liking post:", error);
+    throw error;
+  }
 };
 
 export const unlikePost = async (id: string): Promise<void> => {
-  await api.delete(`/likes/${id}`);
+  try {
+    console.log(`Unliking post with ID: ${id}`);
+    const response = await api.delete(`/likes/${id}`);
+    console.log("Unlike post response:", response.data);
+  } catch (error) {
+    console.error("Error unliking post:", error);
+    throw error;
+  }
 };
 
 export const getLikes = async (): Promise<string[]> => {
-  const response = await api.get('/likes');
-  return response.data;
+  try {
+    console.log("Fetching user likes");
+    const response = await api.get('/likes');
+    console.log("User likes response:", response.data);
+    
+    // Handle different response formats
+    if (response.data && typeof response.data === 'object') {
+      if (Array.isArray(response.data.likes)) {
+        return response.data.likes;
+      } else if (Array.isArray(response.data)) {
+        return response.data;
+      }
+    }
+    
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error("Error fetching likes:", error);
+    return [];
+  }
 };
 
 export const bookmarkPost = async (postId: string): Promise<void> => {
@@ -108,22 +156,31 @@ export const getBookmarks = async (): Promise<Post[]> => {
     const response = await api.get('/bookmarks');
     console.log("Detailed bookmarks response:", response.data);
     
-    // Check if response.data is an object with a bookmarks property (array)
-    if (response.data && typeof response.data === 'object' && Array.isArray(response.data.bookmarks)) {
-      console.log("Found bookmarks array in response.data.bookmarks");
-      return response.data.bookmarks;
+    // Check various possible response formats
+    if (response.data && typeof response.data === 'object') {
+      // Format 1: { bookmarks: Post[] }
+      if (Array.isArray(response.data.bookmarks)) {
+        console.log("Found bookmarks array in response.data.bookmarks");
+        return response.data.bookmarks;
+      }
+      
+      // Format 2: { posts: Post[] }
+      if (Array.isArray(response.data.posts)) {
+        console.log("Found bookmarks array in response.data.posts");
+        return response.data.posts;
+      }
+      
+      // Format 3: { data: Post[] }
+      if (Array.isArray(response.data.data)) {
+        console.log("Found bookmarks array in response.data.data");
+        return response.data.data;
+      }
     }
     
-    // If response.data is already an array, return it
+    // Format 4: Post[]
     if (Array.isArray(response.data)) {
-      console.log("Found bookmarks array in response.data");
+      console.log("Found bookmarks array directly in response.data");
       return response.data;
-    }
-    
-    // If we have posts property
-    if (response.data && typeof response.data === 'object' && Array.isArray(response.data.posts)) {
-      console.log("Found bookmarks array in response.data.posts");
-      return response.data.posts;
     }
     
     console.error("Unexpected bookmarks response format:", response.data);
