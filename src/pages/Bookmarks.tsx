@@ -11,6 +11,7 @@ import { toast } from "sonner";
 export default function Bookmarks() {
   const [bookmarks, setBookmarks] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -22,10 +23,22 @@ export default function Bookmarks() {
       }
 
       try {
+        console.log("Starting to fetch bookmarks");
         const userBookmarks = await getBookmarks();
-        setBookmarks(userBookmarks);
+        console.log("Finished fetching bookmarks:", userBookmarks);
+        
+        if (Array.isArray(userBookmarks)) {
+          setBookmarks(userBookmarks);
+          if (userBookmarks.length === 0) {
+            console.log("No bookmarks found for user");
+          }
+        } else {
+          console.error("Expected array but received:", userBookmarks);
+          setError("Received invalid data from server");
+        }
       } catch (error) {
         console.error("Error fetching bookmarks:", error);
+        setError("Failed to load your bookmarks");
         toast.error("Failed to load your bookmarks");
       } finally {
         setIsLoading(false);
@@ -56,6 +69,26 @@ export default function Bookmarks() {
               <div key={i} className="h-64 bg-gray-200 rounded"></div>
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Bookmarked Posts</h1>
+          <p className="text-muted-foreground">Posts you've saved for later</p>
+        </div>
+        <div className="text-center py-12 border rounded-lg bg-muted/10">
+          <h3 className="text-lg font-medium mb-2 text-red-500">{error}</h3>
+          <p className="text-muted-foreground mb-4">
+            There was an error retrieving your bookmarks. Please try again later.
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            Try Again
+          </Button>
         </div>
       </div>
     );

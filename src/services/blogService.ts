@@ -82,14 +82,54 @@ export const getLikes = async (): Promise<string[]> => {
 };
 
 export const bookmarkPost = async (postId: string): Promise<void> => {
-  await api.post('/bookmarks', { postId });
+  try {
+    console.log(`Bookmarking post with ID: ${postId}`);
+    const response = await api.post('/bookmarks', { postId });
+    console.log("Bookmark response:", response.data);
+  } catch (error) {
+    console.error("Error bookmarking post:", error);
+    throw error;
+  }
 };
 
 export const removeBookmark = async (id: string): Promise<void> => {
-  await api.delete(`/bookmarks/${id}`);
+  try {
+    console.log(`Removing bookmark with ID: ${id}`);
+    await api.delete(`/bookmarks/${id}`);
+  } catch (error) {
+    console.error("Error removing bookmark:", error);
+    throw error;
+  }
 };
 
 export const getBookmarks = async (): Promise<Post[]> => {
-  const response = await api.get('/bookmarks');
-  return response.data;
+  try {
+    console.log("Fetching bookmarks");
+    const response = await api.get('/bookmarks');
+    console.log("Detailed bookmarks response:", response.data);
+    
+    // Check if response.data is an object with a bookmarks property (array)
+    if (response.data && typeof response.data === 'object' && Array.isArray(response.data.bookmarks)) {
+      console.log("Found bookmarks array in response.data.bookmarks");
+      return response.data.bookmarks;
+    }
+    
+    // If response.data is already an array, return it
+    if (Array.isArray(response.data)) {
+      console.log("Found bookmarks array in response.data");
+      return response.data;
+    }
+    
+    // If we have posts property
+    if (response.data && typeof response.data === 'object' && Array.isArray(response.data.posts)) {
+      console.log("Found bookmarks array in response.data.posts");
+      return response.data.posts;
+    }
+    
+    console.error("Unexpected bookmarks response format:", response.data);
+    return []; // Return empty array on unexpected format
+  } catch (error) {
+    console.error("Error fetching bookmarks:", error);
+    return []; // Return empty array on error
+  }
 };
