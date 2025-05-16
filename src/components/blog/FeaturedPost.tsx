@@ -16,6 +16,9 @@ interface FeaturedPostProps {
 
 export function FeaturedPost({ post, onLike, onBookmark }: FeaturedPostProps) {
   const navigate = useNavigate();
+  
+  // Ensure likes is always a number
+  const likeCount = typeof post.likes === 'number' ? post.likes : 0;
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg">
@@ -34,11 +37,11 @@ export function FeaturedPost({ post, onLike, onBookmark }: FeaturedPostProps) {
         </CardTitle>
         <div className="flex items-center space-x-2 pt-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={post.author.avatar} alt={post.author.name} />
-            <AvatarFallback>{getInitials(post.author.name)}</AvatarFallback>
+            <AvatarImage src={post.author?.avatar} alt={post.author?.name || ""} />
+            <AvatarFallback>{getInitials(post.author?.name || "")}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-medium">{post.author.name}</p>
+            <p className="text-sm font-medium">{post.author?.name}</p>
             <p className="text-xs text-muted-foreground">
               {formatDate(post.createdAt)}
             </p>
@@ -58,10 +61,10 @@ export function FeaturedPost({ post, onLike, onBookmark }: FeaturedPostProps) {
             className={`gap-1 ${post.isLiked ? "text-red-500" : ""}`}
             onClick={() => onLike?.(post.id)}
           >
-            <Heart size={16} className={post.isLiked ? "fill-red-500" : ""} /> {post.likes}
+            <Heart size={16} className={post.isLiked ? "fill-red-500" : ""} /> {likeCount}
           </Button>
           <Button variant="ghost" size="sm" className="gap-1">
-            <MessageSquare size={16} /> {post.comments}
+            <MessageSquare size={16} /> {post.comments || 0}
           </Button>
           <Button 
             variant="ghost" 

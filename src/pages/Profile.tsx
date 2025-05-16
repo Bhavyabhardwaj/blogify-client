@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,13 +17,20 @@ export default function Profile() {
   const [bio, setBio] = useState(user?.bio || "");
   const [avatar, setAvatar] = useState(user?.avatar || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initials, setInitials] = useState(getInitials(user?.name || ""));
   const navigate = useNavigate();
 
+  // Update initials when name changes
+  useEffect(() => {
+    setInitials(getInitials(name));
+  }, [name]);
+
   // Redirect if not authenticated
-  if (!isAuthenticated) {
-    navigate("/login");
-    return null;
-  }
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +48,10 @@ export default function Profile() {
     }
   };
 
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="max-w-xl mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Profile Settings</h1>
@@ -55,7 +66,7 @@ export default function Profile() {
             <div className="flex items-center space-x-4">
               <Avatar className="h-20 w-20">
                 <AvatarImage src={avatar || user?.avatar} alt={name} />
-                <AvatarFallback>{getInitials(name || user?.name || "")}</AvatarFallback>
+                <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
               <div className="space-y-1">
                 <h3 className="text-lg font-medium">Profile Picture</h3>
@@ -80,7 +91,10 @@ export default function Profile() {
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setInitials(getInitials(e.target.value));
+                }}
                 required
               />
             </div>

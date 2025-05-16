@@ -12,10 +12,28 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search } from "lucide-react";
 import { getInitials } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const [userInitials, setUserInitials] = useState(getInitials(user?.name || "User"));
+  
+  // Update initials when user name changes
+  useEffect(() => {
+    setUserInitials(getInitials(user?.name || "User"));
+  }, [user?.name]);
+
+  const handleSearchClick = () => {
+    navigate('/search');
+    // If you want to focus on the search input when navigating to the search page
+    setTimeout(() => {
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) {
+        searchInput.focus();
+      }
+    }, 100);
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -54,7 +72,7 @@ export function Header() {
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <Button
               variant="outline"
-              onClick={() => navigate('/search')}
+              onClick={handleSearchClick}
               className="inline-flex items-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground px-4 py-2 relative h-8 w-full justify-start text-muted-foreground sm:pr-12 md:w-40 lg:w-64"
             >
               <Search className="mr-2 h-4 w-4" />
@@ -78,7 +96,7 @@ export function Header() {
                         alt={user?.name || "User"}
                       />
                       <AvatarFallback>
-                        {getInitials(user?.name || "User")}
+                        {userInitials}
                       </AvatarFallback>
                     </Avatar>
                   </Button>

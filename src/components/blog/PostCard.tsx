@@ -17,16 +17,19 @@ interface PostCardProps {
 export function PostCard({ post, onLike, onBookmark }: PostCardProps) {
   const navigate = useNavigate();
 
+  // Ensure likes is always a number
+  const likeCount = typeof post.likes === 'number' ? post.likes : 0;
+
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md h-full flex flex-col">
       <CardHeader className="pb-0">
         <div className="flex items-center space-x-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={post.author.avatar} alt={post.author.name} />
-            <AvatarFallback>{getInitials(post.author.name)}</AvatarFallback>
+            <AvatarImage src={post.author?.avatar} alt={post.author?.name || ""} />
+            <AvatarFallback>{getInitials(post.author?.name || "")}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-medium">{post.author.name}</p>
+            <p className="text-sm font-medium">{post.author?.name}</p>
             <p className="text-xs text-muted-foreground">
               {formatDate(post.createdAt)}
             </p>
@@ -68,11 +71,11 @@ export function PostCard({ post, onLike, onBookmark }: PostCardProps) {
             onClick={() => onLike?.(post.id)}
           >
             <Heart size={15} className={post.isLiked ? "fill-red-500" : ""} /> 
-            <span className="ml-1 text-xs">{post.likes}</span>
+            <span className="ml-1 text-xs">{likeCount}</span>
           </Button>
           <Button variant="ghost" size="sm" className="p-1 h-8">
             <MessageSquare size={15} /> 
-            <span className="ml-1 text-xs">{post.comments}</span>
+            <span className="ml-1 text-xs">{post.comments || 0}</span>
           </Button>
           <Button 
             variant="ghost" 

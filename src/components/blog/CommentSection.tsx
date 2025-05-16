@@ -2,11 +2,12 @@
 import { useState, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Comment, User } from "@/types";
+import { Comment } from "@/types";
 import { formatDate, getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Separator } from "../ui/separator";
+import { useNavigate } from "react-router-dom";
 
 interface CommentSectionProps {
   comments: Comment[];
@@ -18,10 +19,16 @@ export function CommentSection({ comments, postId, onAddComment }: CommentSectio
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!content.trim() || isSubmitting) return;
+
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -36,9 +43,9 @@ export function CommentSection({ comments, postId, onAddComment }: CommentSectio
 
   return (
     <div className="mt-8">
-      <h3 className="text-xl font-semibold mb-4">Comments ({comments.length})</h3>
+      <h3 className="text-xl font-semibold mb-4">Comments ({comments ? comments.length : 0})</h3>
       
-      {isAuthenticated && (
+      {isAuthenticated ? (
         <form onSubmit={handleSubmit} className="mb-6">
           <Textarea
             placeholder="Share your thoughts..."
@@ -54,20 +61,25 @@ export function CommentSection({ comments, postId, onAddComment }: CommentSectio
             {isSubmitting ? "Adding Comment..." : "Add Comment"}
           </Button>
         </form>
+      ) : (
+        <div className="mb-6 p-4 bg-muted/30 rounded-lg text-center">
+          <p className="mb-2">Sign in to leave a comment</p>
+          <Button onClick={() => navigate("/login")}>Sign In</Button>
+        </div>
       )}
       
-      {comments.length > 0 ? (
+      {comments && comments.length > 0 ? (
         <div className="space-y-6">
           {comments.map((comment) => (
             <div key={comment.id} className="animate-fade-in">
               <div className="flex gap-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={comment.author.avatar} alt={comment.author.name} />
-                  <AvatarFallback>{getInitials(comment.author.name)}</AvatarFallback>
+                  <AvatarImage src={comment.author?.avatar} alt={comment.author?.name} />
+                  <AvatarFallback>{getInitials(comment.author?.name || "")}</AvatarFallback>
                 </Avatar>
                 <div className="w-full">
                   <div className="flex items-baseline justify-between">
-                    <h4 className="font-medium">{comment.author.name}</h4>
+                    <h4 className="font-medium">{comment.author?.name || "Anonymous"}</h4>
                     <span className="text-xs text-muted-foreground">
                       {formatDate(comment.createdAt)}
                     </span>

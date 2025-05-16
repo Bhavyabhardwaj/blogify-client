@@ -32,8 +32,14 @@ export default function PostDetail() {
           getPostById(id),
           getComments(id)
         ]);
+        
+        // Ensure likes is a number
+        if (postData && (postData.likes === undefined || isNaN(Number(postData.likes)))) {
+          postData.likes = 0;
+        }
+        
         setPost(postData);
-        setComments(commentsData);
+        setComments(commentsData || []);
       } catch (error) {
         console.error("Error fetching post details:", error);
         toast.error("Failed to load post");
@@ -55,10 +61,12 @@ export default function PostDetail() {
 
     try {
       const newIsLiked = !post.isLiked;
+      const currentLikes = typeof post.likes === 'number' ? post.likes : 0;
+      
       setPost({
         ...post,
         isLiked: newIsLiked,
-        likes: newIsLiked ? post.likes + 1 : post.likes - 1
+        likes: newIsLiked ? currentLikes + 1 : Math.max(0, currentLikes - 1)
       });
 
       if (newIsLiked) {
@@ -111,9 +119,26 @@ export default function PostDetail() {
   };
 
   const handleAddComment = async (postId: string, content: string) => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    
     try {
       const newComment = await createComment(postId, content);
-      setComments([newComment, ...comments]);
+      
+      // Create a properly formatted comment with author info
+      const commentWithAuthor = {
+        ...newComment,
+        author: {
+          id: user?.id || '',
+          name: user?.name || 'Anonymous',
+          avatar: user?.avatar || '',
+          email: user?.email || ''
+        }
+      };
+      
+      setComments([commentWithAuthor, ...comments]);
       
       // Update comment count in post
       if (post) {
@@ -159,22 +184,22 @@ export default function PostDetail() {
   return (
     <div className="max-w-4xl mx-auto py-8">
       <article className="prose prose-lg max-w-none">
-        <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
+        <h1 className="text-3xl font-bold mb-4">{post?.title}</h1>
         
         <div className="flex items-center space-x-3 mb-6">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={post.author.avatar} alt={post.author.name} />
-            <AvatarFallback>{getInitials(post.author.name)}</AvatarFallback>
+            <AvatarImage src={post?.author?.avatar} alt={post?.author?.name} />
+            <AvatarFallback>{getInitials(post?.author?.name || '')}</AvatarFallback>
           </Avatar>
           <div>
-            <div className="font-medium">{post.author.name}</div>
+            <div className="font-medium">{post?.author?.name}</div>
             <div className="text-sm text-muted-foreground">
-              {formatDate(post.createdAt)}
+              {formatDate(post?.createdAt)}
             </div>
           </div>
         </div>
 
-        {post.featured_image && (
+        {post?.featured_image && (
           <div className="mb-6">
             <img
               src={post.featured_image}
@@ -188,25 +213,25 @@ export default function PostDetail() {
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`gap-1 ${post.isLiked ? "text-red-500" : ""}`}
+            className={`gap-1 ${post?.isLiked ? "text-red-500" : ""}`}
             onClick={handleLike}
           >
-            <Heart size={18} className={post.isLiked ? "fill-red-500" : ""} /> {post.likes}
+            <Heart size={18} className={post?.isLiked ? "fill-red-500" : ""} /> {typeof post?.likes === 'number' ? post.likes : 0}
           </Button>
           <Button variant="ghost" size="sm" className="gap-1">
-            <MessageSquare size={18} /> {post.comments}
+            <MessageSquare size={18} /> {post?.comments || 0}
           </Button>
           <Button 
             variant="ghost" 
             size="sm" 
-            className={post.isBookmarked ? "text-blue-500" : ""}
+            className={post?.isBookmarked ? "text-blue-500" : ""}
             onClick={handleBookmark}
           >
-            <BookmarkIcon size={18} className={post.isBookmarked ? "fill-blue-500" : ""} />
+            <BookmarkIcon size={18} className={post?.isBookmarked ? "fill-blue-500" : ""} />
           </Button>
         </div>
 
-        {post.tags && post.tags.length > 0 && (
+        {post?.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
             {post.tags.map(tag => (
               <Badge key={tag.id} variant="secondary" className="text-xs">
@@ -216,14 +241,14 @@ export default function PostDetail() {
           </div>
         )}
 
-        <div className="mt-6 leading-relaxed" dangerouslySetInnerHTML={{ __html: post.content }} />
+        <div className="mt-6 leading-relaxed" dangerouslySetInnerHTML={{ __html: post?.content || '' }} />
       </article>
       
       <Separator className="my-8" />
       
       <CommentSection 
         comments={comments} 
-        postId={post.id} 
+        postId={post?.id || ''} 
         onAddComment={handleAddComment} 
       />
     </div>
