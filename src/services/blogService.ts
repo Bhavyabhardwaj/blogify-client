@@ -5,7 +5,20 @@ import { Post, PostCreateData, PostUpdateData } from '@/types';
 export const getAllPosts = async (): Promise<Post[]> => {
   try {
     const response = await api.get('/posts/all');
-    return response.data;
+    console.log("API response for getAllPosts:", response.data);
+    
+    // Check if response.data is an object with a posts property (array)
+    if (response.data && typeof response.data === 'object' && Array.isArray(response.data.posts)) {
+      return response.data.posts;
+    }
+    
+    // If response.data is already an array, return it
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+    
+    console.error("Unexpected response format from API:", response.data);
+    return []; // Return empty array on unexpected format to prevent errors
   } catch (error) {
     console.error("Error fetching all posts:", error);
     return []; // Return empty array on error to prevent slice errors
