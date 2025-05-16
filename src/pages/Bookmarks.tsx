@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
-import { ReloadIcon } from "@radix-ui/react-icons";
+import { RefreshCw } from "lucide-react";
 
 export default function Bookmarks() {
   const [bookmarks, setBookmarks] = useState<Post[]>([]);
@@ -100,7 +100,7 @@ export default function Bookmarks() {
             onClick={handleRefresh} 
             disabled={isRefreshing}
           >
-            {isRefreshing && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+            {isRefreshing && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
             Try Again
           </Button>
         </div>
@@ -120,7 +120,7 @@ export default function Bookmarks() {
           onClick={handleRefresh} 
           disabled={isRefreshing}
         >
-          {isRefreshing && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+          {isRefreshing && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
           Refresh
         </Button>
       </div>
