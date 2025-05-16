@@ -31,6 +31,7 @@ export const createPost = async (postData: PostCreateData): Promise<Post> => {
       title: postData.title,
       content: postData.content,
       featured_image: postData.featured_image || null, // Ensure null instead of undefined
+      tags: [], // Always include an empty tags array if none provided
       tagIds: postData.tagIds || [] // Ensure we always send an array even if empty
     };
     

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPost } from "@/services/blogService";
@@ -38,7 +37,9 @@ export default function CreatePost() {
       const postData = {
         title: title.trim(),
         content: content.trim(),
-        featured_image: featuredImage.trim() || null // Use null if empty
+        featured_image: featuredImage.trim() || null, // Use null if empty
+        tags: [], // Always include an empty tags array
+        tagIds: [] // Always include an empty tagIds array
       };
 
       console.log("Sending post data:", postData); // Debug log to see what's being sent
