@@ -34,8 +34,16 @@ export default function PostDetail() {
         ]);
         
         // Ensure likes is a number
-        if (postData && (postData.likes === undefined || isNaN(Number(postData.likes)))) {
-          postData.likes = 0;
+        if (postData) {
+          if (postData.likes === undefined || postData.likes === null || isNaN(Number(postData.likes))) {
+            postData.likes = 0;
+          } else {
+            postData.likes = Number(postData.likes);
+          }
+          
+          if (postData.comments === undefined || postData.comments === null || isNaN(Number(postData.comments))) {
+            postData.comments = commentsData?.length || 0;
+          }
         }
         
         setPost(postData);
@@ -141,13 +149,14 @@ export default function PostDetail() {
         }
       };
       
-      setComments([commentWithAuthor, ...comments]);
+      setComments(prevComments => [commentWithAuthor, ...prevComments]);
       
       // Update comment count in post
       if (post) {
+        const newCommentCount = (post.comments || 0) + 1;
         setPost({
           ...post,
-          comments: (post.comments || 0) + 1
+          comments: newCommentCount
         });
       }
       
@@ -221,7 +230,17 @@ export default function PostDetail() {
           >
             <Heart size={18} className={post?.isLiked ? "fill-red-500" : ""} /> {typeof post?.likes === 'number' ? post.likes : 0}
           </Button>
-          <Button variant="ghost" size="sm" className="gap-1">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="gap-1"
+            onClick={() => {
+              const commentSection = document.querySelector('#comments-section');
+              if (commentSection) {
+                commentSection.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+          >
             <MessageSquare size={18} /> {post?.comments || 0}
           </Button>
           <Button 
@@ -249,11 +268,13 @@ export default function PostDetail() {
       
       <Separator className="my-8" />
       
-      <CommentSection 
-        comments={comments} 
-        postId={post?.id || ''} 
-        onAddComment={handleAddComment} 
-      />
+      <div id="comments-section">
+        <CommentSection 
+          comments={comments} 
+          postId={post?.id || ''} 
+          onAddComment={handleAddComment} 
+        />
+      </div>
     </div>
   );
 }

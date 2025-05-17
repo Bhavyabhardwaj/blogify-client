@@ -19,6 +19,7 @@ export function FeaturedPost({ post, onLike, onBookmark }: FeaturedPostProps) {
   
   // Ensure likes is always a number
   const likeCount = typeof post.likes === 'number' ? post.likes : 0;
+  const commentCount = typeof post.comments === 'number' ? post.comments : 0;
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg">
@@ -63,8 +64,13 @@ export function FeaturedPost({ post, onLike, onBookmark }: FeaturedPostProps) {
           >
             <Heart size={16} className={post.isLiked ? "fill-red-500" : ""} /> {likeCount}
           </Button>
-          <Button variant="ghost" size="sm" className="gap-1">
-            <MessageSquare size={16} /> {post.comments || 0}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="gap-1"
+            onClick={() => navigate(`/post/${post.id}#comments-section`)}
+          >
+            <MessageSquare size={16} /> {commentCount}
           </Button>
           <Button 
             variant="ghost" 

@@ -10,12 +10,12 @@ export function formatDate(date: string | null | undefined): string {
   if (!date) return "Unknown date";
   
   try {
-    // More robust date parsing
+    // Handle standard ISO date format
     const parsedDate = new Date(date);
     
     // Check if the date is valid
     if (isNaN(parsedDate.getTime())) {
-      console.warn(`Invalid date value received: ${date}`);
+      console.warn(`Invalid date value: ${date}`);
       return "Unknown date";
     }
     
@@ -39,7 +39,7 @@ export function truncateText(text: string, maxLength: number): string {
 
 export function getInitials(name: string): string {
   if (!name) return "U";
-  const parts = name.split(' ');
+  const parts = name.trim().split(' ');
   if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }

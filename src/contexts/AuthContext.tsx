@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { User } from '../types';
 import api from '@/lib/api';
@@ -99,8 +100,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await api.put('/user/updateUserProfile', data);
       const updatedUser = response.data;
       
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      // Make sure we're updating the user state with the most current data
+      setUser(prevUser => ({
+        ...(prevUser || {}),
+        ...updatedUser,
+        // Make sure these don't get lost if API doesn't return them
+        name: updatedUser.name || prevUser?.name,
+        bio: updatedUser.bio || prevUser?.bio,
+        avatar: updatedUser.avatar || prevUser?.avatar
+      }));
+      
+      // Also update localStorage
+      const userData = {
+        ...(user || {}),
+        ...updatedUser,
+        name: updatedUser.name || user?.name,
+        bio: updatedUser.bio || user?.bio,
+        avatar: updatedUser.avatar || user?.avatar
+      };
+      localStorage.setItem('user', JSON.stringify(userData));
       
       toast.success("Profile updated successfully");
     } catch (error) {

@@ -9,12 +9,12 @@ export const getAllPosts = async (): Promise<Post[]> => {
     
     // Check if response.data is an object with a posts property (array)
     if (response.data && typeof response.data === 'object' && Array.isArray(response.data.posts)) {
-      return response.data.posts;
+      return response.data.posts.map(normalizePostData);
     }
     
     // If response.data is already an array, return it
     if (Array.isArray(response.data)) {
-      return response.data;
+      return response.data.map(normalizePostData);
     }
     
     console.error("Unexpected response format from API:", response.data);
@@ -34,14 +34,14 @@ export const getUserPosts = async (): Promise<Post[]> => {
     // Handle different response formats
     if (response.data && typeof response.data === 'object') {
       if (Array.isArray(response.data.posts)) {
-        return response.data.posts;
+        return response.data.posts.map(normalizePostData);
       } else if (Array.isArray(response.data)) {
-        return response.data;
+        return response.data.map(normalizePostData);
       }
     }
     
     console.warn("Unexpected user posts response format:", response.data);
-    return Array.isArray(response.data) ? response.data : [];
+    return Array.isArray(response.data) ? response.data.map(normalizePostData) : [];
   } catch (error) {
     console.error("Error fetching user posts:", error);
     throw error;
@@ -49,8 +49,13 @@ export const getUserPosts = async (): Promise<Post[]> => {
 };
 
 export const getPostById = async (id: string): Promise<Post> => {
-  const response = await api.get(`/posts/${id}`);
-  return response.data;
+  try {
+    const response = await api.get(`/posts/${id}`);
+    return normalizePostData(response.data);
+  } catch (error) {
+    console.error(`Error fetching post with ID ${id}:`, error);
+    throw error;
+  }
 };
 
 export const createPost = async (postData: PostCreateData): Promise<Post> => {
@@ -70,7 +75,7 @@ export const createPost = async (postData: PostCreateData): Promise<Post> => {
     
     const response = await api.post('/posts', formattedData);
     console.log("API response:", response.data);
-    return response.data;
+    return normalizePostData(response.data);
   } catch (error: any) {
     console.error("Error from API:", error.response?.data || error.message);
     throw error;
@@ -79,7 +84,7 @@ export const createPost = async (postData: PostCreateData): Promise<Post> => {
 
 export const updatePost = async (postData: PostUpdateData): Promise<Post> => {
   const response = await api.put(`/posts/${postData.id}`, postData);
-  return response.data;
+  return normalizePostData(response.data);
 };
 
 export const deletePost = async (id: string): Promise<void> => {
@@ -173,36 +178,75 @@ export const getBookmarks = async (): Promise<Post[]> => {
     }
     
     // Try all possible response formats
+    let bookmarksData = [];
+    
     if (response.data && typeof response.data === 'object') {
       // Format 1: { bookmarks: Post[] }
       if (response.data.bookmarks && Array.isArray(response.data.bookmarks)) {
         console.log("Found bookmarks array in response.data.bookmarks");
-        return response.data.bookmarks;
+        bookmarksData = response.data.bookmarks;
       }
-      
       // Format 2: { posts: Post[] }
-      if (response.data.posts && Array.isArray(response.data.posts)) {
+      else if (response.data.posts && Array.isArray(response.data.posts)) {
         console.log("Found bookmarks array in response.data.posts");
-        return response.data.posts;
+        bookmarksData = response.data.posts;
       }
-      
       // Format 3: { data: Post[] }
-      if (response.data.data && Array.isArray(response.data.data)) {
+      else if (response.data.data && Array.isArray(response.data.data)) {
         console.log("Found bookmarks array in response.data.data");
-        return response.data.data;
+        bookmarksData = response.data.data;
       }
-      
       // Format 4: Post[]
-      if (Array.isArray(response.data)) {
+      else if (Array.isArray(response.data)) {
         console.log("Found bookmarks array directly in response.data");
-        return response.data;
+        bookmarksData = response.data;
       }
     }
     
-    console.error("Unexpected bookmarks response format:", response.data);
-    return []; // Return empty array on unexpected format
+    return bookmarksData.map(normalizePostData);
   } catch (error) {
     console.error("Error fetching bookmarks:", error);
     return []; // Return empty array on error
   }
 };
+
+// Helper function to normalize post data
+function normalizePostData(post: any): Post {
+  if (!post) return post;
+
+  // Make sure likes is a number 
+  if (post.likes === undefined || post.likes === null || isNaN(Number(post.likes))) {
+    post.likes = 0;
+  } else {
+    post.likes = Number(post.likes);
+  }
+
+  // Make sure comments is a number
+  if (post.comments === undefined || post.comments === null || isNaN(Number(post.comments))) {
+    post.comments = 0;
+  } else {
+    post.comments = Number(post.comments);
+  }
+
+  // Ensure createdAt and updatedAt are valid dates
+  if (!post.createdAt || isNaN(new Date(post.createdAt).getTime())) {
+    post.createdAt = new Date().toISOString();
+  }
+  
+  if (!post.updatedAt || isNaN(new Date(post.updatedAt).getTime())) {
+    post.updatedAt = post.createdAt || new Date().toISOString();
+  }
+
+  // Ensure author is properly structured
+  if (!post.author) {
+    post.author = {
+      id: 'unknown',
+      name: 'Anonymous',
+      email: '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  return post;
+}

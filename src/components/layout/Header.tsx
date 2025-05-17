@@ -17,9 +17,9 @@ import { useEffect, useState } from "react";
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
-  const [userInitials, setUserInitials] = useState(getInitials(user?.name || "User"));
+  const [userInitials, setUserInitials] = useState("U");
   
-  // Update initials when user name changes
+  // Update initials when user changes
   useEffect(() => {
     if (user?.name) {
       setUserInitials(getInitials(user.name));

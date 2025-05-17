@@ -39,13 +39,22 @@ export default function Search() {
     }
 
     const lowerCaseQuery = searchQuery.toLowerCase();
-    const results = posts.filter(
-      post =>
-        post.title.toLowerCase().includes(lowerCaseQuery) ||
-        post.content.toLowerCase().includes(lowerCaseQuery) ||
-        post.author?.name.toLowerCase().includes(lowerCaseQuery) ||
-        (post.tags && post.tags.some(tag => tag.name.toLowerCase().includes(lowerCaseQuery)))
-    );
+    const results = posts.filter(post => {
+      // Safely check each property before accessing toLowerCase
+      const titleMatch = post.title?.toLowerCase()?.includes(lowerCaseQuery) || false;
+      const contentMatch = post.content?.toLowerCase()?.includes(lowerCaseQuery) || false;
+      const authorMatch = post.author?.name?.toLowerCase()?.includes(lowerCaseQuery) || false;
+      
+      // Safely check tags
+      let tagMatch = false;
+      if (post.tags && Array.isArray(post.tags)) {
+        tagMatch = post.tags.some(tag => 
+          tag && tag.name && tag.name.toLowerCase().includes(lowerCaseQuery)
+        );
+      }
+      
+      return titleMatch || contentMatch || authorMatch || tagMatch;
+    });
 
     setFilteredPosts(results);
   }, [searchQuery, posts]);

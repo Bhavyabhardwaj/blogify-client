@@ -13,17 +13,22 @@ import { getInitials } from "@/lib/utils";
 
 export default function Profile() {
   const { user, updateProfile, isAuthenticated } = useAuth();
-  const [name, setName] = useState(user?.name || "");
-  const [bio, setBio] = useState(user?.bio || "");
-  const [avatar, setAvatar] = useState(user?.avatar || "");
+  const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatar, setAvatar] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [initials, setInitials] = useState(getInitials(user?.name || ""));
+  const [initials, setInitials] = useState("");
   const navigate = useNavigate();
 
-  // Update initials when name changes
+  // Update form fields when user data changes
   useEffect(() => {
-    setInitials(getInitials(name));
-  }, [name]);
+    if (user) {
+      setName(user.name || "");
+      setBio(user.bio || "");
+      setAvatar(user.avatar || "");
+      setInitials(getInitials(user.name || ""));
+    }
+  }, [user]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -65,7 +70,7 @@ export default function Profile() {
           <CardContent className="space-y-6">
             <div className="flex items-center space-x-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={avatar || user?.avatar} alt={name} />
+                <AvatarImage src={avatar} alt={name} />
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
               <div className="space-y-1">
