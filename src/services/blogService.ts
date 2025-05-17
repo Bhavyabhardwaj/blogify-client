@@ -1,3 +1,4 @@
+
 import api from '@/lib/api';
 import { Post, PostCreateData, PostUpdateData } from '@/types';
 
@@ -144,6 +145,7 @@ export const removeBookmark = async (id: string): Promise<void> => {
   try {
     console.log(`Removing bookmark with ID: ${id}`);
     await api.delete(`/bookmarks/${id}`);
+    console.log("Successfully removed bookmark");
   } catch (error) {
     console.error("Error removing bookmark:", error);
     throw error;
@@ -156,31 +158,45 @@ export const getBookmarks = async (): Promise<Post[]> => {
     const response = await api.get('/bookmarks');
     console.log("Detailed bookmarks response:", response.data);
     
-    // Check various possible response formats
+    // More extensive logging to help debug
+    console.log("Bookmarks response type:", typeof response.data);
+    
+    // If response is empty, return empty array immediately
+    if (!response.data) {
+      console.log("Empty response data from bookmarks endpoint");
+      return [];
+    }
+    
+    // Enhanced logging for debugging
+    if (typeof response.data === 'object') {
+      console.log("Response object keys:", Object.keys(response.data));
+    }
+    
+    // Try all possible response formats
     if (response.data && typeof response.data === 'object') {
       // Format 1: { bookmarks: Post[] }
-      if (Array.isArray(response.data.bookmarks)) {
+      if (response.data.bookmarks && Array.isArray(response.data.bookmarks)) {
         console.log("Found bookmarks array in response.data.bookmarks");
         return response.data.bookmarks;
       }
       
       // Format 2: { posts: Post[] }
-      if (Array.isArray(response.data.posts)) {
+      if (response.data.posts && Array.isArray(response.data.posts)) {
         console.log("Found bookmarks array in response.data.posts");
         return response.data.posts;
       }
       
       // Format 3: { data: Post[] }
-      if (Array.isArray(response.data.data)) {
+      if (response.data.data && Array.isArray(response.data.data)) {
         console.log("Found bookmarks array in response.data.data");
         return response.data.data;
       }
-    }
-    
-    // Format 4: Post[]
-    if (Array.isArray(response.data)) {
-      console.log("Found bookmarks array directly in response.data");
-      return response.data;
+      
+      // Format 4: Post[]
+      if (Array.isArray(response.data)) {
+        console.log("Found bookmarks array directly in response.data");
+        return response.data;
+      }
     }
     
     console.error("Unexpected bookmarks response format:", response.data);

@@ -17,6 +17,8 @@ import CreatePost from "./pages/CreatePost";
 import UserPosts from "./pages/UserPosts";
 import Bookmarks from "./pages/Bookmarks";
 import NotFound from "./pages/NotFound";
+import Search from "./pages/Search";
+import EditPost from "./pages/EditPost";
 
 const queryClient = new QueryClient();
 
@@ -35,8 +37,10 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/post/:id" element={<PostDetail />} />
               <Route path="/create-post" element={<CreatePost />} />
+              <Route path="/edit-post/:id" element={<EditPost />} />
               <Route path="/my-posts" element={<UserPosts />} />
               <Route path="/bookmarks" element={<Bookmarks />} />
+              <Route path="/search" element={<Search />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

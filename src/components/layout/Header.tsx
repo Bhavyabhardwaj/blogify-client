@@ -21,7 +21,9 @@ export function Header() {
   
   // Update initials when user name changes
   useEffect(() => {
-    setUserInitials(getInitials(user?.name || "User"));
+    if (user?.name) {
+      setUserInitials(getInitials(user.name));
+    }
   }, [user?.name]);
 
   const handleSearchClick = () => {

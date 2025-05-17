@@ -23,17 +23,23 @@ export function CommentSection({ comments, postId, onAddComment }: CommentSectio
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || isSubmitting) return;
+    
+    // Validate content
+    if (!content.trim() || isSubmitting) {
+      return;
+    }
 
+    // Check if user is authenticated
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
 
+    // Submit comment
     setIsSubmitting(true);
     try {
-      await onAddComment(postId, content);
-      setContent("");
+      await onAddComment(postId, content.trim());
+      setContent(""); // Clear form on successful submission
     } catch (error) {
       console.error("Failed to add comment:", error);
     } finally {
@@ -52,6 +58,7 @@ export function CommentSection({ comments, postId, onAddComment }: CommentSectio
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="mb-2 min-h-[100px]"
+            disabled={isSubmitting}
           />
           <Button 
             type="submit" 

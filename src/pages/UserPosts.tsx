@@ -41,7 +41,18 @@ export default function UserPosts() {
 
       try {
         const userPosts = await getUserPosts();
-        setPosts(userPosts);
+        
+        // Process the posts to ensure valid date formats
+        const processedPosts = userPosts.map(post => ({
+          ...post,
+          // Ensure createdAt is a valid date string
+          createdAt: post.createdAt || new Date().toISOString(),
+          // Ensure likes and comments are numbers
+          likes: typeof post.likes === 'number' ? post.likes : 0,
+          comments: typeof post.comments === 'number' ? post.comments : 0
+        }));
+        
+        setPosts(processedPosts);
       } catch (error) {
         console.error("Error fetching user posts:", error);
         toast.error("Failed to load your posts");
@@ -65,6 +76,10 @@ export default function UserPosts() {
       console.error("Error deleting post:", error);
       toast.error("Failed to delete post");
     }
+  };
+
+  const handleEdit = (postId: string) => {
+    navigate(`/edit-post/${postId}`);
   };
 
   if (isLoading) {
@@ -116,14 +131,14 @@ export default function UserPosts() {
                   </div>
                 </TableCell>
                 <TableCell>{formatDate(post.createdAt)}</TableCell>
-                <TableCell>{post.likes}</TableCell>
-                <TableCell>{post.comments}</TableCell>
+                <TableCell>{post.likes || 0}</TableCell>
+                <TableCell>{post.comments || 0}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end space-x-2">
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => navigate(`/edit-post/${post.id}`)}
+                      onClick={() => handleEdit(post.id)}
                     >
                       <Edit size={18} />
                     </Button>

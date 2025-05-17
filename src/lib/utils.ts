@@ -10,17 +10,20 @@ export function formatDate(date: string | null | undefined): string {
   if (!date) return "Unknown date";
   
   try {
-    // Check if the date is valid before formatting
+    // More robust date parsing
     const parsedDate = new Date(date);
+    
+    // Check if the date is valid
     if (isNaN(parsedDate.getTime())) {
       console.warn(`Invalid date value received: ${date}`);
       return "Unknown date";
     }
     
+    // Use more robust date formatting
     return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
       month: 'long',
       day: 'numeric',
-      year: 'numeric',
     }).format(parsedDate);
   } catch (error) {
     console.error("Error formatting date:", error, date);

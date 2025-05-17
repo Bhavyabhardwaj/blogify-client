@@ -127,14 +127,17 @@ export default function PostDetail() {
     try {
       const newComment = await createComment(postId, content);
       
-      // Create a properly formatted comment with author info
-      const commentWithAuthor = {
+      // Create a properly formatted comment with author info that matches Comment type
+      const commentWithAuthor: Comment = {
         ...newComment,
         author: {
           id: user?.id || '',
           name: user?.name || 'Anonymous',
           avatar: user?.avatar || '',
-          email: user?.email || ''
+          email: user?.email || '',
+          // Add required fields for User type
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         }
       };
       
@@ -144,7 +147,7 @@ export default function PostDetail() {
       if (post) {
         setPost({
           ...post,
-          comments: post.comments + 1
+          comments: (post.comments || 0) + 1
         });
       }
       
