@@ -45,6 +45,7 @@ export default function Profile() {
     try {
       await updateProfile({ name, bio, avatar });
       toast.success("Profile updated successfully");
+      setInitials(getInitials(name)); // Update initials after successful update
     } catch (error) {
       console.error("Profile update failed:", error);
       toast.error("Failed to update profile");

@@ -22,40 +22,38 @@ export default function PostDetail() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchPostAndComments = async () => {
-      if (!id) return;
+  const fetchPostAndComments = async () => {
+    if (!id) return;
 
-      try {
-        setIsLoading(true);
-        const [postData, commentsData] = await Promise.all([
-          getPostById(id),
-          getComments(id)
-        ]);
-        
-        // Ensure likes is a number
-        if (postData) {
-          if (postData.likes === undefined || postData.likes === null || isNaN(Number(postData.likes))) {
-            postData.likes = 0;
-          } else {
-            postData.likes = Number(postData.likes);
-          }
-          
-          if (postData.comments === undefined || postData.comments === null || isNaN(Number(postData.comments))) {
-            postData.comments = commentsData?.length || 0;
-          }
+    try {
+      setIsLoading(true);
+      const [postData, commentsData] = await Promise.all([
+        getPostById(id),
+        getComments(id)
+      ]);
+      
+      // Ensure likes is a number
+      if (postData) {
+        if (postData.likes === undefined || postData.likes === null || isNaN(Number(postData.likes))) {
+          postData.likes = 0;
+        } else {
+          postData.likes = Number(postData.likes);
         }
         
-        setPost(postData);
-        setComments(commentsData || []);
-      } catch (error) {
-        console.error("Error fetching post details:", error);
-        toast.error("Failed to load post");
-      } finally {
-        setIsLoading(false);
+        postData.comments = commentsData?.length || 0;
       }
-    };
+      
+      setPost(postData);
+      setComments(commentsData || []);
+    } catch (error) {
+      console.error("Error fetching post details:", error);
+      toast.error("Failed to load post");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchPostAndComments();
   }, [id]);
 
@@ -79,17 +77,16 @@ export default function PostDetail() {
 
       if (newIsLiked) {
         await likePost(post.id);
+        toast.success("Post liked");
       } else {
         await unlikePost(post.id);
+        toast.success("Post unliked");
       }
     } catch (error) {
       console.error("Error updating like:", error);
       toast.error("Failed to update like");
       // Revert UI change on error
-      if (id) {
-        const updatedPost = await getPostById(id);
-        setPost(updatedPost);
-      }
+      fetchPostAndComments();
     }
   };
 
@@ -119,10 +116,7 @@ export default function PostDetail() {
       console.error("Error updating bookmark:", error);
       toast.error("Failed to update bookmark");
       // Revert UI change on error
-      if (id) {
-        const updatedPost = await getPostById(id);
-        setPost(updatedPost);
-      }
+      fetchPostAndComments();
     }
   };
 
@@ -159,8 +153,6 @@ export default function PostDetail() {
           comments: newCommentCount
         });
       }
-      
-      toast.success("Comment added");
     } catch (error) {
       console.error("Error adding comment:", error);
       toast.error("Failed to add comment");
@@ -241,7 +233,7 @@ export default function PostDetail() {
               }
             }}
           >
-            <MessageSquare size={18} /> {post?.comments || 0}
+            <MessageSquare size={18} /> {comments?.length || 0}
           </Button>
           <Button 
             variant="ghost" 

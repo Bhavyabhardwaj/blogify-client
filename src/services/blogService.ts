@@ -161,21 +161,7 @@ export const getBookmarks = async (): Promise<Post[]> => {
   try {
     console.log("Fetching bookmarks");
     const response = await api.get('/bookmarks');
-    console.log("Detailed bookmarks response:", response.data);
-    
-    // More extensive logging to help debug
-    console.log("Bookmarks response type:", typeof response.data);
-    
-    // If response is empty, return empty array immediately
-    if (!response.data) {
-      console.log("Empty response data from bookmarks endpoint");
-      return [];
-    }
-    
-    // Enhanced logging for debugging
-    if (typeof response.data === 'object') {
-      console.log("Response object keys:", Object.keys(response.data));
-    }
+    console.log("Bookmarks response:", response.data);
     
     // Try all possible response formats
     let bookmarksData = [];

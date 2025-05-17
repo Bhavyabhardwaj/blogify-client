@@ -1,5 +1,5 @@
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Comment } from "@/types";
@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Separator } from "../ui/separator";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface CommentSectionProps {
   comments: Comment[];
@@ -20,7 +21,7 @@ export function CommentSection({ comments, postId, onAddComment }: CommentSectio
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
-
+  
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
@@ -40,8 +41,10 @@ export function CommentSection({ comments, postId, onAddComment }: CommentSectio
     try {
       await onAddComment(postId, content.trim());
       setContent(""); // Clear form on successful submission
+      toast.success("Comment added successfully");
     } catch (error) {
       console.error("Failed to add comment:", error);
+      toast.error("Failed to add comment");
     } finally {
       setIsSubmitting(false);
     }
@@ -86,7 +89,7 @@ export function CommentSection({ comments, postId, onAddComment }: CommentSectio
                 </Avatar>
                 <div className="w-full">
                   <div className="flex items-baseline justify-between">
-                    <h4 className="font-medium">{comment.author?.name || "Anonymous"}</h4>
+                    <h4 className="font-medium">{comment.author?.name || user?.name || "Anonymous"}</h4>
                     <span className="text-xs text-muted-foreground">
                       {formatDate(comment.createdAt)}
                     </span>

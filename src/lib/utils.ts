@@ -24,6 +24,8 @@ export function formatDate(date: string | null | undefined): string {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     }).format(parsedDate);
   } catch (error) {
     console.error("Error formatting date:", error, date);
