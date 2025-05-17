@@ -89,7 +89,9 @@ export function CommentSection({ comments, postId, onAddComment }: CommentSectio
                 </Avatar>
                 <div className="w-full">
                   <div className="flex items-baseline justify-between">
-                    <h4 className="font-medium">{comment.author?.name || user?.name || "Anonymous"}</h4>
+                    <h4 className="font-medium">
+                      {comment.author?.name || user?.name || "Anonymous"}
+                    </h4>
                     <span className="text-xs text-muted-foreground">
                       {formatDate(comment.createdAt)}
                     </span>

@@ -1,4 +1,3 @@
-
 import api from '@/lib/api';
 import { Post, PostCreateData, PostUpdateData } from '@/types';
 
@@ -7,14 +6,22 @@ export const getAllPosts = async (): Promise<Post[]> => {
     const response = await api.get('/posts/all');
     console.log("API response for getAllPosts:", response.data);
     
+    // Get user likes to mark which posts are liked
+    const userLikes = await getLikes();
+    
+    // Get user bookmarks
+    const userBookmarks = await getBookmarkIds();
+    
     // Check if response.data is an object with a posts property (array)
     if (response.data && typeof response.data === 'object' && Array.isArray(response.data.posts)) {
-      return response.data.posts.map(normalizePostData);
+      return response.data.posts.map(post => 
+        normalizePostData(post, userLikes, userBookmarks));
     }
     
     // If response.data is already an array, return it
     if (Array.isArray(response.data)) {
-      return response.data.map(normalizePostData);
+      return response.data.map(post => 
+        normalizePostData(post, userLikes, userBookmarks));
     }
     
     console.error("Unexpected response format from API:", response.data);
@@ -31,17 +38,27 @@ export const getUserPosts = async (): Promise<Post[]> => {
     const response = await api.get('/posts');
     console.log("User posts response:", response.data);
     
+    // Get user likes
+    const userLikes = await getLikes();
+    
+    // Get user bookmarks
+    const userBookmarks = await getBookmarkIds();
+    
     // Handle different response formats
     if (response.data && typeof response.data === 'object') {
       if (Array.isArray(response.data.posts)) {
-        return response.data.posts.map(normalizePostData);
+        return response.data.posts.map(post => 
+          normalizePostData(post, userLikes, userBookmarks));
       } else if (Array.isArray(response.data)) {
-        return response.data.map(normalizePostData);
+        return response.data.map(post => 
+          normalizePostData(post, userLikes, userBookmarks));
       }
     }
     
     console.warn("Unexpected user posts response format:", response.data);
-    return Array.isArray(response.data) ? response.data.map(normalizePostData) : [];
+    return Array.isArray(response.data) 
+      ? response.data.map(post => normalizePostData(post, userLikes, userBookmarks)) 
+      : [];
   } catch (error) {
     console.error("Error fetching user posts:", error);
     throw error;
@@ -51,7 +68,14 @@ export const getUserPosts = async (): Promise<Post[]> => {
 export const getPostById = async (id: string): Promise<Post> => {
   try {
     const response = await api.get(`/posts/${id}`);
-    return normalizePostData(response.data);
+    
+    // Get user likes to check if this post is liked
+    const userLikes = await getLikes();
+    
+    // Get user bookmarks
+    const userBookmarks = await getBookmarkIds();
+    
+    return normalizePostData(response.data, userLikes, userBookmarks);
   } catch (error) {
     console.error(`Error fetching post with ID ${id}:`, error);
     throw error;
@@ -157,11 +181,47 @@ export const removeBookmark = async (id: string): Promise<void> => {
   }
 };
 
+// New function to get just the bookmarked post IDs
+export const getBookmarkIds = async (): Promise<string[]> => {
+  try {
+    console.log("Fetching bookmark IDs");
+    const response = await api.get('/bookmarks');
+    console.log("Bookmarks response for IDs:", response.data);
+    
+    // Try to extract post IDs based on possible response formats
+    if (response.data) {
+      // Format 1: { bookmarks: Post[] }
+      if (response.data.bookmarks && Array.isArray(response.data.bookmarks)) {
+        return response.data.bookmarks.map((item: any) => item.id || item.postId);
+      }
+      // Format 2: { posts: Post[] }
+      else if (response.data.posts && Array.isArray(response.data.posts)) {
+        return response.data.posts.map((item: any) => item.id || item.postId);
+      }
+      // Format 3: Post[]
+      else if (Array.isArray(response.data)) {
+        return response.data.map((item: any) => item.id || item.postId);
+      }
+    }
+    
+    return [];
+  } catch (error) {
+    console.error("Error fetching bookmark IDs:", error);
+    return [];
+  }
+};
+
 export const getBookmarks = async (): Promise<Post[]> => {
   try {
     console.log("Fetching bookmarks");
     const response = await api.get('/bookmarks');
     console.log("Bookmarks response:", response.data);
+    
+    // Get user likes to mark which posts are liked
+    const userLikes = await getLikes();
+    
+    // Get user bookmarks (this is redundant but keeping for consistency)
+    const userBookmarks = await getBookmarkIds();
     
     // Try all possible response formats
     let bookmarksData = [];
@@ -189,15 +249,15 @@ export const getBookmarks = async (): Promise<Post[]> => {
       }
     }
     
-    return bookmarksData.map(normalizePostData);
+    return bookmarksData.map(post => normalizePostData(post, userLikes, userBookmarks));
   } catch (error) {
     console.error("Error fetching bookmarks:", error);
     return []; // Return empty array on error
   }
 };
 
-// Helper function to normalize post data
-function normalizePostData(post: any): Post {
+// Updated helper function to normalize post data
+function normalizePostData(post: any, userLikes: string[] = [], userBookmarks: string[] = []): Post {
   if (!post) return post;
 
   // Make sure likes is a number 
@@ -233,6 +293,12 @@ function normalizePostData(post: any): Post {
       updatedAt: new Date().toISOString()
     };
   }
+  
+  // Check if this post is liked by the user
+  post.isLiked = userLikes.includes(post.id);
+  
+  // Check if this post is bookmarked by the user
+  post.isBookmarked = userBookmarks.includes(post.id);
 
   return post;
 }

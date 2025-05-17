@@ -17,9 +17,25 @@ export const getComments = async (postId: string): Promise<Comment[]> => {
       comments = response.data.comments;
     } else if (response.data && typeof response.data === 'object') {
       // If it's an object but not in the expected format, try to extract comments
-      comments = Object.values(response.data).filter(item => 
+      const extractedComments = Object.values(response.data).filter(item => 
         typeof item === 'object' && item !== null && 'content' in item
       );
+      
+      // Make sure all extracted items conform to Comment type
+      comments = extractedComments.map((item: any) => ({
+        id: item.id || `temp-${Math.random()}`,
+        content: item.content || '',
+        author: item.author || {
+          id: 'unknown',
+          name: item.userName || 'Anonymous',
+          email: '',
+          createdAt: item.createdAt || new Date().toISOString(),
+          updatedAt: item.updatedAt || new Date().toISOString()
+        },
+        postId: item.postId || postId,
+        createdAt: item.createdAt || new Date().toISOString(),
+        updatedAt: item.updatedAt || new Date().toISOString()
+      }));
     }
     
     // Sort comments by date (newest first)

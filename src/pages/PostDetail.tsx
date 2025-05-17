@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getPostById, likePost, unlikePost, bookmarkPost, removeBookmark } from "@/services/blogService";
 import { getComments, createComment } from "@/services/commentService";
@@ -22,7 +22,7 @@ export default function PostDetail() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  const fetchPostAndComments = async () => {
+  const fetchPostAndComments = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -40,6 +40,7 @@ export default function PostDetail() {
           postData.likes = Number(postData.likes);
         }
         
+        // Update comments count to match actual comments
         postData.comments = commentsData?.length || 0;
       }
       
@@ -51,11 +52,11 @@ export default function PostDetail() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchPostAndComments();
-  }, [id]);
+  }, [fetchPostAndComments]);
 
   const handleLike = async () => {
     if (!isAuthenticated) {
@@ -153,9 +154,22 @@ export default function PostDetail() {
           comments: newCommentCount
         });
       }
+      
+      // Force re-fetch to ensure consistency
+      setTimeout(() => {
+        fetchPostAndComments();
+      }, 500);
     } catch (error) {
       console.error("Error adding comment:", error);
       toast.error("Failed to add comment");
+    }
+  };
+
+  // Scroll to comments when clicking comment button
+  const scrollToComments = () => {
+    const commentSection = document.getElementById('comments-section');
+    if (commentSection) {
+      commentSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -226,12 +240,7 @@ export default function PostDetail() {
             variant="ghost" 
             size="sm" 
             className="gap-1"
-            onClick={() => {
-              const commentSection = document.querySelector('#comments-section');
-              if (commentSection) {
-                commentSection.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
+            onClick={scrollToComments}
           >
             <MessageSquare size={18} /> {comments?.length || 0}
           </Button>
