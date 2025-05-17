@@ -20,6 +20,24 @@ export function formatDate(date: string | null | undefined): string {
     }
     
     // Use more robust date formatting
+    const now = new Date();
+    const diffMs = now.getTime() - parsedDate.getTime();
+    const diffMins = Math.round(diffMs / 60000);
+    const diffHours = Math.round(diffMs / 3600000);
+    const diffDays = Math.round(diffMs / 86400000);
+    
+    // For recent dates, show relative time
+    if (diffMins < 1) {
+      return 'Just now';
+    } else if (diffMins < 60) {
+      return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+    } else if (diffHours < 24) {
+      return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+    } else if (diffDays < 7) {
+      return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+    }
+    
+    // For older dates, show the full date
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'long',

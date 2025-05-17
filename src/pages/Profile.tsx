@@ -23,6 +23,7 @@ export default function Profile() {
   // Update form fields when user data changes
   useEffect(() => {
     if (user) {
+      console.log("User data in Profile:", user);
       setName(user.name || "");
       setBio(user.bio || "");
       setAvatar(user.avatar || "");
@@ -43,6 +44,7 @@ export default function Profile() {
     setIsSubmitting(true);
 
     try {
+      console.log("Updating profile with:", { name, bio, avatar });
       await updateProfile({ name, bio, avatar });
       toast.success("Profile updated successfully");
       setInitials(getInitials(name)); // Update initials after successful update

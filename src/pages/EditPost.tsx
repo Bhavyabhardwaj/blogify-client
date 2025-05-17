@@ -24,6 +24,7 @@ export default function EditPost() {
   useEffect(() => {
     const fetchPost = async () => {
       if (!isAuthenticated) {
+        toast.error("You must be logged in to edit posts");
         navigate("/login");
         return;
       }
@@ -33,6 +34,7 @@ export default function EditPost() {
       try {
         setIsLoading(true);
         const postData = await getPostById(id);
+        console.log("Fetched post data:", postData);
         
         // Check if the post belongs to the current user
         if (postData.author.id !== user?.id) {

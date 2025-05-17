@@ -26,9 +26,10 @@ export const getComments = async (postId: string): Promise<Comment[]> => {
         id: item.id || `temp-${Math.random()}`,
         content: item.content || '',
         author: item.author || {
-          id: 'unknown',
-          name: item.userName || 'Anonymous',
-          email: '',
+          id: item.authorId || 'unknown',
+          name: item.authorName || item.userName || 'Anonymous',
+          email: item.email || '',
+          avatar: item.avatar || '',
           createdAt: item.createdAt || new Date().toISOString(),
           updatedAt: item.updatedAt || new Date().toISOString()
         },
@@ -61,6 +62,30 @@ export const createComment = async (postId: string, content: string): Promise<Co
     const comment = response.data;
     if (!comment.createdAt) {
       comment.createdAt = new Date().toISOString();
+    }
+    
+    // If author is not present in the response, add a placeholder
+    if (!comment.author) {
+      // Get user from localStorage
+      const userStr = localStorage.getItem('user');
+      let user = null;
+      
+      if (userStr) {
+        try {
+          user = JSON.parse(userStr);
+        } catch (e) {
+          console.error("Error parsing user from localStorage", e);
+        }
+      }
+      
+      comment.author = {
+        id: user?.id || 'unknown',
+        name: user?.name || 'Anonymous',
+        email: user?.email || '',
+        avatar: user?.avatar || '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
     }
     
     return comment;
