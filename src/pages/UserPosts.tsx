@@ -24,12 +24,13 @@ import {
   DialogTitle, 
 } from "@/components/ui/dialog";
 import { Edit, Trash } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function UserPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function UserPosts() {
         // Process the posts to ensure valid date formats
         const processedPosts = userPosts.map(post => ({
           ...post,
-          // Ensure createdAt is a valid date string
+          // Do not override existing createdAt dates
           createdAt: post.createdAt || new Date().toISOString(),
           // Ensure likes and comments are numbers
           likes: typeof post.likes === 'number' ? post.likes : 0,
@@ -94,7 +95,12 @@ export default function UserPosts() {
   }
 
   return (
-    <div className="py-8">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="py-8"
+    >
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">My Posts</h1>
@@ -118,7 +124,7 @@ export default function UserPosts() {
           </TableHeader>
           <TableBody>
             {posts.map(post => (
-              <TableRow key={post.id}>
+              <TableRow key={post.id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-medium">
                   <div className="truncate max-w-[400px]">
                     <Button 
@@ -139,6 +145,7 @@ export default function UserPosts() {
                       variant="ghost" 
                       size="icon"
                       onClick={() => handleEdit(post.id)}
+                      className="hover:bg-primary/10 transition-colors"
                     >
                       <Edit size={18} />
                     </Button>
@@ -146,6 +153,7 @@ export default function UserPosts() {
                       variant="ghost" 
                       size="icon"
                       onClick={() => setPostToDelete(post)}
+                      className="hover:bg-destructive/10 transition-colors"
                     >
                       <Trash size={18} />
                     </Button>
@@ -186,6 +194,6 @@ export default function UserPosts() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
 }

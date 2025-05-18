@@ -18,7 +18,7 @@ interface PostCardProps {
 export function PostCard({ post, onLike, onBookmark }: PostCardProps) {
   const navigate = useNavigate();
 
-  // Ensure likes is always a number
+  // Ensure likes and comments are always numbers
   const likeCount = typeof post.likes === 'number' ? post.likes : 0;
   const commentCount = typeof post.comments === 'number' ? post.comments : 0;
 
@@ -38,10 +38,12 @@ export function PostCard({ post, onLike, onBookmark }: PostCardProps) {
       transition={{ duration: 0.2 }}
       className="h-full"
     >
-      <Card className="overflow-hidden transition-all hover:shadow-md h-full flex flex-col dark:border-gray-700">
+      <Card className="overflow-hidden transition-all hover:shadow-lg h-full flex flex-col dark:border-gray-700">
         {post.featured_image && (
           <div className="aspect-video w-full overflow-hidden">
-            <img
+            <motion.img
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
               src={post.featured_image}
               alt={post.title}
               className="h-full w-full object-cover"
@@ -63,12 +65,13 @@ export function PostCard({ post, onLike, onBookmark }: PostCardProps) {
           </div>
         </CardHeader>
         <CardContent className="pt-4 flex-grow">
-          <h3 
-            className="font-semibold text-lg mb-2 hover:text-blue-500 cursor-pointer" 
+          <motion.h3 
+            whileHover={{ x: 3 }}
+            className="font-semibold text-lg mb-2 hover:text-primary cursor-pointer" 
             onClick={() => navigate(`/post/${post.id}`)}
           >
             {post.title}
-          </h3>
+          </motion.h3>
           <p className="text-sm text-muted-foreground">
             {truncateText(post.contentPreview || post.content, 100)}
           </p>

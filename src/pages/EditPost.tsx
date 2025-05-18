@@ -37,8 +37,8 @@ export default function EditPost() {
         const postData = await getPostById(id);
         console.log("Fetched post data:", postData);
         
-        // Check if the post belongs to the current user
-        if (postData.author.id !== user?.id) {
+        // Check if the post belongs to the current user - compare IDs as strings to handle type mismatches
+        if (postData.author.id.toString() !== user?.id?.toString()) {
           toast.error("You can only edit your own posts");
           navigate("/my-posts");
           return;

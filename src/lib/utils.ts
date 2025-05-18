@@ -1,4 +1,3 @@
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -19,37 +18,30 @@ export function formatDate(date: string | null | undefined): string {
       return "Unknown date";
     }
     
-    // Use more robust date formatting
+    // Get current date for comparison
     const now = new Date();
+    
+    // For any date that's not today, show the full date
+    const isToday = 
+      parsedDate.getDate() === now.getDate() &&
+      parsedDate.getMonth() === now.getMonth() &&
+      parsedDate.getFullYear() === now.getFullYear();
+    
+    if (!isToday) {
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(parsedDate);
+    }
+    
+    // For today's dates, show relative time
     const diffMs = now.getTime() - parsedDate.getTime();
     const diffMins = Math.round(diffMs / 60000);
     const diffHours = Math.round(diffMs / 3600000);
-    const diffDays = Math.round(diffMs / 86400000);
     
-    // Check if the date is in the future (possible clock sync issues)
-    if (diffMs < -86400000) {
-      // More than a day in the future, something is wrong with the date
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }).format(parsedDate);
-    }
-    
-    // For dates more than 1 day ago, show the full date
-    if (diffDays >= 1) {
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }).format(parsedDate);
-    }
-    
-    // For recent dates, show relative time
     if (diffMins < 1) {
       return 'Just now';
     } else if (diffMins < 60) {
@@ -58,11 +50,8 @@ export function formatDate(date: string | null | undefined): string {
       return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
     }
     
-    // Fallback to full date format
+    // This should never be reached for today's dates, but as a fallback
     return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     }).format(parsedDate);
