@@ -9,6 +9,8 @@ import { likePost, unlikePost, bookmarkPost, removeBookmark } from "@/services/b
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { motion } from "framer-motion";
 
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -118,8 +120,8 @@ export default function Home() {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <div className="animate-pulse text-center">
-          <div className="h-8 w-52 bg-gray-200 rounded mb-4 mx-auto"></div>
-          <div className="h-4 w-96 bg-gray-200 rounded mx-auto"></div>
+          <div className="h-8 w-52 bg-gray-200 dark:bg-gray-700 rounded mb-4 mx-auto"></div>
+          <div className="h-4 w-96 bg-gray-200 dark:bg-gray-700 rounded mx-auto"></div>
         </div>
       </div>
     );
@@ -132,47 +134,81 @@ export default function Home() {
   return (
     <div>
       <section className="flex flex-col items-center justify-center py-8 text-center">
-        <div className="space-y-2 max-w-3xl">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="space-y-2 max-w-3xl"
+        >
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold">Welcome to Blogify</h1>
           <p className="text-muted-foreground text-lg md:text-xl">
             Discover stories, thinking, and expertise from writers on any topic
           </p>
           
-          {!isAuthenticated && (
-            <div className="flex items-center justify-center gap-2 py-4">
-              <Button size="lg" onClick={() => navigate("/register")}>
-                Get Started
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate("/login")}>
-                Sign In
-              </Button>
-            </div>
-          )}
-        </div>
+          <div className="flex items-center justify-center gap-4 py-4">
+            {!isAuthenticated && (
+              <>
+                <Button size="lg" onClick={() => navigate("/register")}>
+                  Get Started
+                </Button>
+                <Button size="lg" variant="outline" onClick={() => navigate("/login")}>
+                  Sign In
+                </Button>
+              </>
+            )}
+            <ThemeToggle variant="switch" />
+          </div>
+        </motion.div>
       </section>
 
       {featuredPost && (
         <section className="pt-4 pb-8">
-          <h2 className="text-2xl font-semibold mb-6">Featured Post</h2>
-          <FeaturedPost 
-            post={featuredPost} 
-            onLike={handleLike} 
-            onBookmark={handleBookmark} 
-          />
+          <motion.h2 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="text-2xl font-semibold mb-6"
+          >
+            Featured Post
+          </motion.h2>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <FeaturedPost 
+              post={featuredPost} 
+              onLike={handleLike} 
+              onBookmark={handleBookmark} 
+            />
+          </motion.div>
         </section>
       )}
 
       <section className="py-8">
-        <h2 className="text-2xl font-semibold mb-6">Latest Posts</h2>
+        <motion.h2 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.4 }}
+          className="text-2xl font-semibold mb-6"
+        >
+          Latest Posts
+        </motion.h2>
         {regularPosts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {regularPosts.map((post) => (
-              <PostCard 
-                key={post.id} 
-                post={post} 
-                onLike={handleLike} 
-                onBookmark={handleBookmark} 
-              />
+            {regularPosts.map((post, index) => (
+              <motion.div 
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 * (index + 1) }}
+              >
+                <PostCard 
+                  post={post} 
+                  onLike={handleLike} 
+                  onBookmark={handleBookmark} 
+                />
+              </motion.div>
             ))}
           </div>
         ) : (

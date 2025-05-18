@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 export default function EditPost() {
   const { id } = useParams<{ id: string }>();
@@ -73,6 +74,7 @@ export default function EditPost() {
         featured_image: featured_image || undefined
       };
       
+      console.log("Sending update data:", updateData);
       await updatePost(updateData);
       toast.success("Post updated successfully");
       navigate(`/post/${id}`);
@@ -88,18 +90,30 @@ export default function EditPost() {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <div className="animate-pulse space-y-6 w-full max-w-3xl">
-          <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto"></div>
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="py-8 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Edit Post</h1>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="py-8 max-w-3xl mx-auto"
+    >
+      <motion.h1 
+        initial={{ x: -20 }}
+        animate={{ x: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+        className="text-3xl font-bold mb-6"
+      >
+        Edit Post
+      </motion.h1>
       
-      <Card>
+      <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
         <form onSubmit={handleSubmit}>
           <CardHeader>
             <CardTitle>Post Details</CardTitle>
@@ -116,6 +130,7 @@ export default function EditPost() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter post title"
                 required
+                className="dark:bg-gray-800 dark:border-gray-700"
               />
             </div>
             
@@ -129,7 +144,7 @@ export default function EditPost() {
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Write your post content"
                 required
-                className="min-h-[300px]"
+                className="min-h-[300px] dark:bg-gray-800 dark:border-gray-700"
               />
             </div>
             
@@ -142,17 +157,22 @@ export default function EditPost() {
                 value={featured_image}
                 onChange={(e) => setFeaturedImage(e.target.value)}
                 placeholder="Enter image URL"
+                className="dark:bg-gray-800 dark:border-gray-700"
               />
               
               {featured_image && (
-                <div className="mt-2">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="mt-2"
+                >
                   <img 
                     src={featured_image} 
                     alt="Featured" 
                     className="max-h-[200px] object-cover rounded-md" 
                     onError={() => toast.error("Invalid image URL")}
                   />
-                </div>
+                </motion.div>
               )}
             </div>
           </CardContent>
@@ -165,12 +185,16 @@ export default function EditPost() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSaving}>
+            <Button 
+              type="submit" 
+              disabled={isSaving}
+              className="bg-primary hover:bg-primary/90 transition-colors"
+            >
               {isSaving ? "Saving..." : "Update Post"}
             </Button>
           </CardFooter>
         </form>
       </Card>
-    </div>
+    </motion.div>
   );
 }
