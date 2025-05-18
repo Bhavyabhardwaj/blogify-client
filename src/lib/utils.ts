@@ -33,6 +33,19 @@ export function formatDate(date: string | null | undefined): string {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(parsedDate);
+    }
+    
+    // For dates more than 1 day ago, show the full date
+    if (diffDays >= 1) {
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
       }).format(parsedDate);
     }
     
@@ -43,15 +56,15 @@ export function formatDate(date: string | null | undefined): string {
       return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
     } else if (diffHours < 24) {
       return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-    } else if (diffDays < 7) {
-      return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
     }
     
-    // For older dates, show the full date
+    // Fallback to full date format
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     }).format(parsedDate);
   } catch (error) {
     console.error("Error formatting date:", error, date);

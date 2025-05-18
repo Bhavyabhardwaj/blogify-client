@@ -1,3 +1,4 @@
+
 import api from '@/lib/api';
 import { Post, PostCreateData, PostUpdateData } from '@/types';
 
@@ -146,13 +147,15 @@ export const getLikes = async (): Promise<string[]> => {
     // Handle different response formats
     if (response.data && typeof response.data === 'object') {
       if (Array.isArray(response.data.likes)) {
-        return response.data.likes;
+        return response.data.likes.map((like: any) => like.postId || like.id);
       } else if (Array.isArray(response.data)) {
-        return response.data;
+        return response.data.map((like: any) => like.postId || like.id);
       }
     }
     
-    return Array.isArray(response.data) ? response.data : [];
+    return Array.isArray(response.data) 
+      ? response.data.map((like: any) => like.postId || like.id) 
+      : [];
   } catch (error) {
     console.error("Error fetching likes:", error);
     return [];
@@ -249,7 +252,12 @@ export const getBookmarks = async (): Promise<Post[]> => {
       }
     }
     
-    return bookmarksData.map(post => normalizePostData(post, userLikes, userBookmarks));
+    // Make sure each bookmark has isBookmarked set to true 
+    return bookmarksData.map(post => {
+      const normalizedPost = normalizePostData(post, userLikes, userBookmarks);
+      normalizedPost.isBookmarked = true; // Ensure this is always true for bookmarks page
+      return normalizedPost;
+    });
   } catch (error) {
     console.error("Error fetching bookmarks:", error);
     return []; // Return empty array on error
