@@ -57,7 +57,7 @@ export function PostCard({ post, onLike, onBookmark }: PostCardProps) {
               <AvatarFallback>{getInitials(post.author?.name || "")}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-medium">{post.author?.name}</p>
+              <p className="text-sm font-medium">{post.author?.name || "Anonymous"}</p>
               <p className="text-xs text-muted-foreground">
                 {formatDate(post.createdAt)}
               </p>

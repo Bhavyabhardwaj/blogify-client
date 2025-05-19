@@ -1,3 +1,4 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -20,16 +21,50 @@ export function formatDate(date: string | null | undefined): string {
     
     // Get current date for comparison
     const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
     
-    // For any date that's not today, show the full date
     const isToday = 
       parsedDate.getDate() === now.getDate() &&
       parsedDate.getMonth() === now.getMonth() &&
       parsedDate.getFullYear() === now.getFullYear();
     
-    if (!isToday) {
+    const isYesterday = 
+      parsedDate.getDate() === yesterday.getDate() &&
+      parsedDate.getMonth() === yesterday.getMonth() &&
+      parsedDate.getFullYear() === yesterday.getFullYear();
+    
+    // For today's dates, show relative time
+    if (isToday) {
+      const diffMs = now.getTime() - parsedDate.getTime();
+      const diffMins = Math.round(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      
+      if (diffMins < 1) {
+        return 'Just now';
+      } else if (diffMins < 60) {
+        return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+      } else if (diffHours < 24) {
+        return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+      }
+      
       return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(parsedDate);
+    }
+    
+    // For yesterday
+    if (isYesterday) {
+      return `Yesterday at ${new Intl.DateTimeFormat('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(parsedDate)}`;
+    }
+    
+    // For this year but not today or yesterday
+    if (parsedDate.getFullYear() === now.getFullYear()) {
+      return new Intl.DateTimeFormat('en-US', {
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
@@ -37,21 +72,11 @@ export function formatDate(date: string | null | undefined): string {
       }).format(parsedDate);
     }
     
-    // For today's dates, show relative time
-    const diffMs = now.getTime() - parsedDate.getTime();
-    const diffMins = Math.round(diffMs / 60000);
-    const diffHours = Math.round(diffMs / 3600000);
-    
-    if (diffMins < 1) {
-      return 'Just now';
-    } else if (diffMins < 60) {
-      return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
-    } else if (diffHours < 24) {
-      return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-    }
-    
-    // This should never be reached for today's dates, but as a fallback
+    // For any other date, show the full date
     return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     }).format(parsedDate);

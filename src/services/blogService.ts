@@ -1,4 +1,3 @@
-
 import api from '@/lib/api';
 import { Post, PostCreateData, PostUpdateData } from '@/types';
 
@@ -68,17 +67,54 @@ export const getUserPosts = async (): Promise<Post[]> => {
 
 export const getPostById = async (id: string): Promise<Post> => {
   try {
+    console.log(`Fetching post with ID: ${id}`);
     const response = await api.get(`/posts/${id}`);
+    console.log("Post response data:", response.data);
     
+    // Check if response data is null or undefined
+    if (!response.data) {
+      console.error("Post data is null or undefined");
+      throw new Error("Post not found");
+    }
+
+    // Handle different response formats
+    let postData = response.data;
+    if (typeof postData === 'object') {
+      // Check for nested post data
+      if (postData.post) {
+        postData = postData.post;
+      } else if (postData.data) {
+        postData = postData.data;
+      }
+    }
+
+    // Validate post data
+    if (!postData || typeof postData !== 'object') {
+      console.error("Invalid post data format:", postData);
+      throw new Error("Post not found");
+    }
+
     // Get user likes to check if this post is liked
     const userLikes = await getLikes();
     
     // Get user bookmarks
     const userBookmarks = await getBookmarkIds();
     
-    return normalizePostData(response.data, userLikes, userBookmarks);
-  } catch (error) {
+    const normalizedPost = normalizePostData(postData, userLikes, userBookmarks);
+    console.log("Normalized post data:", normalizedPost);
+    
+    // Validate normalized post
+    if (!normalizedPost || !normalizedPost.id) {
+      console.error("Invalid normalized post data:", normalizedPost);
+      throw new Error("Post not found");
+    }
+    
+    return normalizedPost;
+  } catch (error: any) {
     console.error(`Error fetching post with ID ${id}:`, error);
+    if (error.response?.status === 404 || error.message === "Post not found") {
+      throw new Error("Post not found");
+    }
     throw error;
   }
 };
@@ -176,7 +212,13 @@ export const bookmarkPost = async (postId: string): Promise<void> => {
 export const removeBookmark = async (id: string): Promise<void> => {
   try {
     console.log(`Removing bookmark with ID: ${id}`);
-    await api.delete(`/bookmarks/${id}`);
+    // Try both endpoints - some APIs use /bookmarks/:id and others use /bookmarks/:postId
+    try {
+      await api.delete(`/bookmarks/${id}`);
+    } catch (innerError) {
+      console.log("First bookmark removal attempt failed, trying alternate endpoint");
+      await api.delete(`/bookmarks/post/${id}`);
+    }
     console.log("Successfully removed bookmark");
   } catch (error) {
     console.error("Error removing bookmark:", error);
@@ -193,15 +235,26 @@ export const getBookmarkIds = async (): Promise<string[]> => {
     
     // Try to extract post IDs based on possible response formats
     if (response.data) {
-      // Format 1: { bookmarks: Post[] }
+      // Format 1: { bookmarks: [{ post: Post }] }
       if (response.data.bookmarks && Array.isArray(response.data.bookmarks)) {
+        if (response.data.bookmarks.length > 0 && response.data.bookmarks[0].post) {
+          return response.data.bookmarks.map((item: any) => item.post.id || item.post.postId || item.postId);
+        }
         return response.data.bookmarks.map((item: any) => item.id || item.postId);
       }
       // Format 2: { posts: Post[] }
       else if (response.data.posts && Array.isArray(response.data.posts)) {
         return response.data.posts.map((item: any) => item.id || item.postId);
       }
-      // Format 3: Post[]
+      // Format 3: [{ postId: string }]
+      else if (Array.isArray(response.data) && response.data.length > 0 && response.data[0].postId) {
+        return response.data.map((item: any) => item.postId);
+      }
+      // Format 4: [{ post: { id: string } }]
+      else if (Array.isArray(response.data) && response.data.length > 0 && response.data[0].post) {
+        return response.data.map((item: any) => item.post.id);
+      }
+      // Format 5: Post[]
       else if (Array.isArray(response.data)) {
         return response.data.map((item: any) => item.id || item.postId);
       }
@@ -223,17 +276,18 @@ export const getBookmarks = async (): Promise<Post[]> => {
     // Get user likes to mark which posts are liked
     const userLikes = await getLikes();
     
-    // Get user bookmarks (this is redundant but keeping for consistency)
-    const userBookmarks = await getBookmarkIds();
-    
     // Try all possible response formats
-    let bookmarksData = [];
+    let bookmarksData: any[] = [];
     
     if (response.data && typeof response.data === 'object') {
-      // Format 1: { bookmarks: Post[] }
+      // Format 1: { bookmarks: [{ post: Post }] }
       if (response.data.bookmarks && Array.isArray(response.data.bookmarks)) {
         console.log("Found bookmarks array in response.data.bookmarks");
-        bookmarksData = response.data.bookmarks;
+        if (response.data.bookmarks.length > 0 && response.data.bookmarks[0].post) {
+          bookmarksData = response.data.bookmarks.map((item: any) => item.post);
+        } else {
+          bookmarksData = response.data.bookmarks;
+        }
       }
       // Format 2: { posts: Post[] }
       else if (response.data.posts && Array.isArray(response.data.posts)) {
@@ -245,16 +299,39 @@ export const getBookmarks = async (): Promise<Post[]> => {
         console.log("Found bookmarks array in response.data.data");
         bookmarksData = response.data.data;
       }
-      // Format 4: Post[]
+      // Format 4: [{ post: Post }]
+      else if (Array.isArray(response.data) && response.data.length > 0 && response.data[0].post) {
+        console.log("Found bookmarks as array of objects with post property");
+        bookmarksData = response.data.map((item: any) => item.post);
+      }
+      // Format 5: Post[]
       else if (Array.isArray(response.data)) {
         console.log("Found bookmarks array directly in response.data");
         bookmarksData = response.data;
       }
     }
     
+    console.log("Processed bookmarks data:", bookmarksData);
+    
+    // If we still have no data, try to fetch individual posts using the bookmark IDs
+    if (bookmarksData.length === 0) {
+      const bookmarkIds = await getBookmarkIds();
+      console.log("Fetching individual posts for bookmarks with IDs:", bookmarkIds);
+      
+      if (bookmarkIds.length > 0) {
+        const postsPromises = bookmarkIds.map(id => getPostById(id).catch(err => {
+          console.error(`Error fetching bookmarked post ${id}:`, err);
+          return null;
+        }));
+        
+        const posts = await Promise.all(postsPromises);
+        bookmarksData = posts.filter(Boolean) as Post[];
+      }
+    }
+    
     // Make sure each bookmark has isBookmarked set to true 
     return bookmarksData.map(post => {
-      const normalizedPost = normalizePostData(post, userLikes, userBookmarks);
+      const normalizedPost = normalizePostData(post, userLikes, []);
       normalizedPost.isBookmarked = true; // Ensure this is always true for bookmarks page
       return normalizedPost;
     });
@@ -268,45 +345,65 @@ export const getBookmarks = async (): Promise<Post[]> => {
 function normalizePostData(post: any, userLikes: string[] = [], userBookmarks: string[] = []): Post {
   if (!post) return post;
 
-  // Make sure likes is a number 
-  if (post.likes === undefined || post.likes === null || isNaN(Number(post.likes))) {
-    post.likes = 0;
-  } else {
-    post.likes = Number(post.likes);
-  }
+  // Create a copy of the post to avoid modifying the original
+  const normalizedPost: any = { ...post };
 
-  // Make sure comments is a number
-  if (post.comments === undefined || post.comments === null || isNaN(Number(post.comments))) {
-    post.comments = 0;
+  // Extract likes/comments from _count if present
+  if (normalizedPost._count) {
+    normalizedPost.likes = typeof normalizedPost._count.likes === 'number' ? normalizedPost._count.likes : 0;
+    normalizedPost.comments = typeof normalizedPost._count.comments === 'number' ? normalizedPost._count.comments : 0;
   } else {
-    post.comments = Number(post.comments);
+    // Make sure likes is a number 
+    if (normalizedPost.likes === undefined || normalizedPost.likes === null || isNaN(Number(normalizedPost.likes))) {
+      normalizedPost.likes = 0;
+    } else {
+      normalizedPost.likes = Number(normalizedPost.likes);
+    }
+    // Make sure comments is a number
+    if (normalizedPost.comments === undefined || normalizedPost.comments === null || isNaN(Number(normalizedPost.comments))) {
+      normalizedPost.comments = 0;
+    } else {
+      normalizedPost.comments = Number(normalizedPost.comments);
+    }
   }
 
   // Ensure createdAt and updatedAt are valid dates
-  if (!post.createdAt || isNaN(new Date(post.createdAt).getTime())) {
-    post.createdAt = new Date().toISOString();
+  if (!normalizedPost.createdAt || isNaN(new Date(normalizedPost.createdAt).getTime())) {
+    normalizedPost.createdAt = new Date().toISOString();
   }
   
-  if (!post.updatedAt || isNaN(new Date(post.updatedAt).getTime())) {
-    post.updatedAt = post.createdAt || new Date().toISOString();
+  if (!normalizedPost.updatedAt || isNaN(new Date(normalizedPost.updatedAt).getTime())) {
+    normalizedPost.updatedAt = normalizedPost.createdAt || new Date().toISOString();
   }
 
   // Ensure author is properly structured
-  if (!post.author) {
-    post.author = {
+  if (!normalizedPost.author) {
+    normalizedPost.author = {
       id: 'unknown',
       name: 'Anonymous',
       email: '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
+  } else if (typeof normalizedPost.author === 'object') {
+    // Map username to name and avatarUrl to avatar for frontend compatibility
+    if (normalizedPost.author.username && !normalizedPost.author.name) {
+      normalizedPost.author.name = normalizedPost.author.username;
+    }
+    if (normalizedPost.author.avatarUrl && !normalizedPost.author.avatar) {
+      normalizedPost.author.avatar = normalizedPost.author.avatarUrl;
+    }
+    
+    // Ensure author has required fields
+    normalizedPost.author.createdAt = normalizedPost.author.createdAt || new Date().toISOString();
+    normalizedPost.author.updatedAt = normalizedPost.author.updatedAt || new Date().toISOString();
   }
   
   // Check if this post is liked by the user
-  post.isLiked = userLikes.includes(post.id);
+  normalizedPost.isLiked = userLikes.includes(normalizedPost.id);
   
   // Check if this post is bookmarked by the user
-  post.isBookmarked = userBookmarks.includes(post.id);
+  normalizedPost.isBookmarked = userBookmarks.includes(normalizedPost.id);
 
-  return post;
+  return normalizedPost;
 }

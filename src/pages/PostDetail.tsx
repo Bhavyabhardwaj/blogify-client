@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { BookmarkIcon, Heart, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { motion } from "framer-motion";
 
 export default function PostDetail() {
   const { id } = useParams<{ id: string }>();
@@ -23,36 +24,53 @@ export default function PostDetail() {
   const navigate = useNavigate();
 
   const fetchPostAndComments = useCallback(async () => {
-    if (!id) return;
+    if (!id) {
+      toast.error("Post ID is missing");
+      navigate("/");
+      return;
+    }
 
     try {
       setIsLoading(true);
+      console.log("Fetching post and comments for ID:", id);
+      
       const [postData, commentsData] = await Promise.all([
         getPostById(id),
         getComments(id)
       ]);
       
-      // Ensure likes is a number
-      if (postData) {
-        if (postData.likes === undefined || postData.likes === null || isNaN(Number(postData.likes))) {
-          postData.likes = 0;
-        } else {
-          postData.likes = Number(postData.likes);
-        }
-        
-        // Update comments count to match actual comments
-        postData.comments = commentsData?.length || 0;
+      console.log("Fetched post data:", postData);
+      console.log("Fetched comments data:", commentsData);
+      
+      if (!postData || !postData.id) {
+        console.error("Invalid post data:", postData);
+        toast.error("Post not found");
+        navigate("/");
+        return;
       }
       
-      setPost(postData);
+      // Ensure likes is a number
+      const processedPost = { 
+        ...postData,
+        likes: typeof postData.likes === 'number' ? postData.likes : 0,
+        // Update comments count to match actual comments
+        comments: commentsData?.length || 0
+      };
+      
+      setPost(processedPost);
       setComments(commentsData || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching post details:", error);
-      toast.error("Failed to load post");
+      if (error.message === "Post not found") {
+        toast.error("Post not found");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to load post");
+      }
+      navigate("/");
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [id, navigate]);
 
   useEffect(() => {
     fetchPostAndComments();
@@ -177,13 +195,13 @@ export default function PostDetail() {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <div className="animate-pulse space-y-6 w-full max-w-3xl">
-          <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto"></div>
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
           <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
           </div>
         </div>
       </div>
@@ -200,8 +218,13 @@ export default function PostDetail() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
-      <article className="prose prose-lg max-w-none">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-4xl mx-auto py-8"
+    >
+      <article className="prose prose-lg dark:prose-invert max-w-none">
         <h1 className="text-3xl font-bold mb-4">{post?.title}</h1>
         
         <div className="flex items-center space-x-3 mb-6">
@@ -210,7 +233,7 @@ export default function PostDetail() {
             <AvatarFallback>{getInitials(post?.author?.name || '')}</AvatarFallback>
           </Avatar>
           <div>
-            <div className="font-medium">{post?.author?.name}</div>
+            <div className="font-medium">{post?.author?.name || 'Anonymous'}</div>
             <div className="text-sm text-muted-foreground">
               {formatDate(post?.createdAt)}
             </div>
@@ -218,13 +241,18 @@ export default function PostDetail() {
         </div>
 
         {post?.featured_image && (
-          <div className="mb-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-6"
+          >
             <img
               src={post.featured_image}
               alt={post.title}
               className="w-full h-auto rounded-lg object-cover max-h-[500px]"
             />
-          </div>
+          </motion.div>
         )}
 
         <div className="flex items-center gap-2 mb-6">
@@ -269,13 +297,18 @@ export default function PostDetail() {
       
       <Separator className="my-8" />
       
-      <div id="comments-section">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        id="comments-section"
+      >
         <CommentSection 
           comments={comments} 
           postId={post?.id || ''} 
           onAddComment={handleAddComment} 
         />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
