@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { getInitials } from "@/lib/utils";
 import { BookmarkIcon, Heart, MessageSquare } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface FeaturedPostProps {
   post: Post;
@@ -16,66 +17,94 @@ interface FeaturedPostProps {
 
 export function FeaturedPost({ post, onLike, onBookmark }: FeaturedPostProps) {
   const navigate = useNavigate();
+  
+  // Ensure likes is always a number
+  const likeCount = typeof post.likes === 'number' ? post.likes : 0;
+  const commentCount = typeof post.comments === 'number' ? post.comments : 0;
+
+  const formatCount = (count: number) => {
+    if (count >= 1000000) {
+      return (count / 1000000).toFixed(1) + 'M';
+    }
+    if (count >= 1000) {
+      return (count / 1000).toFixed(1) + 'K';
+    }
+    return count.toString();
+  };
 
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-lg">
-      {post.featured_image && (
-        <div className="aspect-video w-full overflow-hidden">
-          <img
-            src={post.featured_image}
-            alt={post.title}
-            className="h-full w-full object-cover"
-          />
-        </div>
-      )}
-      <CardHeader>
-        <CardTitle className="hover:text-blue-500 cursor-pointer text-2xl" onClick={() => navigate(`/post/${post.id}`)}>
-          {post.title}
-        </CardTitle>
-        <div className="flex items-center space-x-2 pt-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={post.author.avatar} alt={post.author.name} />
-            <AvatarFallback>{getInitials(post.author.name)}</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-sm font-medium">{post.author.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {formatDate(post.createdAt)}
-            </p>
+    <motion.div
+      whileHover={{ scale: 1.01 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Card className="overflow-hidden transition-all hover:shadow-lg dark:border-gray-700">
+        {post.featured_image && (
+          <div className="aspect-video w-full overflow-hidden">
+            <img
+              src={post.featured_image}
+              alt={post.title}
+              className="h-full w-full object-cover"
+            />
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground">
-          {truncateText(post.contentPreview || post.content, 150)}
-        </p>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <div className="flex space-x-4">
+        )}
+        <CardHeader>
+          <CardTitle className="hover:text-blue-500 cursor-pointer text-2xl" onClick={() => navigate(`/post/${post.id}`)}>
+            {post.title}
+          </CardTitle>
+          <div className="flex items-center space-x-2 pt-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={post.author?.avatar} alt={post.author?.name || ""} />
+              <AvatarFallback>{getInitials(post.author?.name || "")}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-sm font-medium">{post.author?.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {formatDate(post.createdAt)}
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            {truncateText(post.contentPreview || post.content, 150)}
+          </p>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <div className="flex space-x-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`gap-1 ${post.isLiked ? "text-red-500" : ""}`}
+              onClick={() => onLike?.(post.id)}
+            >
+              <Heart size={16} className={post.isLiked ? "fill-red-500" : ""} /> {formatCount(likeCount)}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-1"
+              onClick={() => navigate(`/post/${post.id}#comments-section`)}
+            >
+              <MessageSquare size={16} /> {formatCount(commentCount)}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={post.isBookmarked ? "text-blue-500" : ""}
+              onClick={() => onBookmark?.(post.id)}
+            >
+              <BookmarkIcon size={16} className={post.isBookmarked ? "fill-blue-500" : ""} />
+            </Button>
+          </div>
           <Button 
             variant="ghost" 
-            size="sm" 
-            className={`gap-1 ${post.isLiked ? "text-red-500" : ""}`}
-            onClick={() => onLike?.(post.id)}
+            onClick={() => navigate(`/post/${post.id}`)} 
+            className="hover:bg-primary/10 transition-colors"
           >
-            <Heart size={16} className={post.isLiked ? "fill-red-500" : ""} /> {post.likes}
+            Read More
           </Button>
-          <Button variant="ghost" size="sm" className="gap-1">
-            <MessageSquare size={16} /> {post.comments}
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className={post.isBookmarked ? "text-blue-500" : ""}
-            onClick={() => onBookmark?.(post.id)}
-          >
-            <BookmarkIcon size={16} className={post.isBookmarked ? "fill-blue-500" : ""} />
-          </Button>
-        </div>
-        <Button variant="ghost" onClick={() => navigate(`/post/${post.id}`)}>
-          Read More
-        </Button>
-      </CardFooter>
-    </Card>
+        </CardFooter>
+      </Card>
+    </motion.div>
   );
 }

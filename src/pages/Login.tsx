@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +10,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -18,17 +18,22 @@ export default function Login() {
     e.preventDefault();
     
     if (!email || !password) {
-      toast.error("Please fill in all fields");
+      setError("Please fill in all fields");
       return;
     }
-
+    
     setIsLoading(true);
+    setError("");
 
     try {
       await login(email, password);
+      toast.success("Login successful");
       navigate("/");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed:", error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to login. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

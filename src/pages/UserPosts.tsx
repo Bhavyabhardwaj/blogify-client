@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { getUserPosts, deletePost } from "@/services/blogService";
 import { Post } from "@/types";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { formatDate } from "@/lib/utils";
+import { format, parseISO } from 'date-fns';
 import { 
   Table, 
   TableBody, 
@@ -41,7 +40,18 @@ export default function UserPosts() {
 
       try {
         const userPosts = await getUserPosts();
-        setPosts(userPosts);
+        
+        // Process the posts to ensure valid date formats and number types
+        const processedPosts = userPosts.map(post => ({
+          ...post,
+          // Ensure createdAt is a valid date string or null/undefined, parse explicitly
+          createdAt: post.createdAt ? parseISO(post.createdAt) : null, // Use parseISO here
+          // Ensure likes and comments are numbers
+          likes: typeof post.likes === 'number' ? post.likes : 0,
+          comments: typeof post.comments === 'number' ? post.comments : 0
+        }));
+        
+        setPosts(processedPosts);
       } catch (error) {
         console.error("Error fetching user posts:", error);
         toast.error("Failed to load your posts");
@@ -53,12 +63,14 @@ export default function UserPosts() {
     fetchPosts();
   }, [isAuthenticated, navigate]);
 
-  const handleDelete = async () => {
-    if (!postToDelete) return;
+  const handleEdit = (postId: string) => {
+    navigate(`/edit-post/${postId}`);
+  };
 
+  const handleDelete = async (post: Post) => {
     try {
-      await deletePost(postToDelete.id);
-      setPosts(posts.filter(post => post.id !== postToDelete.id));
+      await deletePost(post.id);
+      setPosts(posts.filter(p => p.id !== post.id));
       toast.success("Post deleted successfully");
       setPostToDelete(null);
     } catch (error) {
@@ -69,11 +81,8 @@ export default function UserPosts() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <div className="animate-pulse space-y-6 w-full">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -115,15 +124,19 @@ export default function UserPosts() {
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell>{formatDate(post.createdAt)}</TableCell>
-                <TableCell>{post.likes}</TableCell>
-                <TableCell>{post.comments}</TableCell>
+                <TableCell>{
+                  post.createdAt ?
+                  format(post.createdAt, 'PPpp') :
+                  'Unknown date'
+                }</TableCell>
+                <TableCell>{post.likes || 0}</TableCell>
+                <TableCell>{post.comments || 0}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end space-x-2">
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => navigate(`/edit-post/${post.id}`)}
+                      onClick={() => handleEdit(post.id)}
                     >
                       <Edit size={18} />
                     </Button>
@@ -155,17 +168,22 @@ export default function UserPosts() {
       <Dialog open={!!postToDelete} onOpenChange={() => setPostToDelete(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogTitle>Delete Post</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. This will permanently delete your post
-              "{postToDelete?.title}".
+              Are you sure you want to delete this post? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPostToDelete(null)}>
+            <Button
+              variant="outline"
+              onClick={() => setPostToDelete(null)}
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button
+              variant="destructive"
+              onClick={() => postToDelete && handleDelete(postToDelete)}
+            >
               Delete
             </Button>
           </DialogFooter>

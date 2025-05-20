@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,33 +12,56 @@ import { getInitials } from "@/lib/utils";
 
 export default function Profile() {
   const { user, updateProfile, isAuthenticated } = useAuth();
-  const [name, setName] = useState(user?.name || "");
-  const [bio, setBio] = useState(user?.bio || "");
-  const [avatar, setAvatar] = useState(user?.avatar || "");
+  const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatar, setAvatar] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initials, setInitials] = useState("");
   const navigate = useNavigate();
 
+  // Update form fields when user data changes
+  useEffect(() => {
+    if (user) {
+      console.log("User data in Profile:", user);
+      setName(user.name || "");
+      setBio(user.bio || "");
+      setAvatar(user.avatar || "");
+      setInitials(getInitials(user.name || ""));
+    }
+  }, [user]);
+
   // Redirect if not authenticated
-  if (!isAuthenticated) {
-    navigate("/login");
-    return null;
-  }
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!name.trim()) {
+      toast.error("Name cannot be empty");
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
+      console.log("Updating profile with:", { name, bio, avatar });
       await updateProfile({ name, bio, avatar });
       toast.success("Profile updated successfully");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Profile update failed:", error);
-      toast.error("Failed to update profile");
+      toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="max-w-xl mx-auto py-8">
@@ -54,8 +76,8 @@ export default function Profile() {
           <CardContent className="space-y-6">
             <div className="flex items-center space-x-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={avatar || user?.avatar} alt={name} />
-                <AvatarFallback>{getInitials(name || user?.name || "")}</AvatarFallback>
+                <AvatarImage src={avatar} alt={name} />
+                <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
               <div className="space-y-1">
                 <h3 className="text-lg font-medium">Profile Picture</h3>
@@ -80,7 +102,10 @@ export default function Profile() {
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setInitials(getInitials(e.target.value));
+                }}
                 required
               />
             </div>

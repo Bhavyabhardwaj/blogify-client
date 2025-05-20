@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPost } from "@/services/blogService";
@@ -26,7 +25,7 @@ export default function CreatePost() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title || !content) {
+    if (!title.trim() || !content.trim()) {
       toast.error("Title and content are required");
       return;
     }
@@ -34,18 +33,21 @@ export default function CreatePost() {
     setIsSubmitting(true);
 
     try {
+      // Format the post data properly
       const postData = {
-        title,
-        content,
-        featured_image: featuredImage || undefined
+        title: title.trim(),
+        content: content.trim(),
+        featured_image: featuredImage.trim() || null // Use null if empty
       };
 
+      console.log("Sending post data:", postData); // Debug log to see what's being sent
       const post = await createPost(postData);
       toast.success("Post created successfully!");
       navigate(`/post/${post.id}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to create post:", error);
-      toast.error("Failed to create post");
+      const errorMessage = error.response?.data?.message || "Failed to create post. Please check your inputs and try again.";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

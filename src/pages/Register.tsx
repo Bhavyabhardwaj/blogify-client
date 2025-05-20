@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export default function Register() {
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -19,7 +18,7 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !email || !password || !confirmPassword) {
+    if (!username || !email || !password || !confirmPassword) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -34,13 +33,23 @@ export default function Register() {
       return;
     }
 
+    if (username.length < 3) {
+      toast.error("Username must be at least 3 characters long");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await register(name, email, password);
+      await register(username, email, password);
       navigate("/");
     } catch (error) {
       console.error("Registration failed:", error);
+      if (error.response && error.response.status === 400 && error.response.data && error.response.data.error === 'Email already exists') {
+        toast.error("Registration failed: This email is already registered.");
+      } else {
+        toast.error("Registration failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -57,12 +66,12 @@ export default function Register() {
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
-              id="name"
-              placeholder="John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              id="username"
+              placeholder="johndoe"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
