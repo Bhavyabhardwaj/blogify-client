@@ -1,7 +1,15 @@
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getPostById, updatePost } from "@/services/blogService";
 import { Post } from "@/types";
+=======
+
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getPostById, updatePost } from "@/services/blogService";
+import { Post, PostUpdateData } from "@/types";
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +17,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
+<<<<<<< HEAD
 import { Label } from "@/components/ui/label";
+=======
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
 
 export default function EditPost() {
   const { id } = useParams<{ id: string }>();
@@ -17,19 +28,31 @@ export default function EditPost() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [featured_image, setFeaturedImage] = useState("");
+<<<<<<< HEAD
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, isAuthenticated } = useAuth();
+=======
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const { isAuthenticated, user } = useAuth();
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPost = async () => {
+<<<<<<< HEAD
       if (!isAuthenticated || !user?.id) {
         console.log("User not authenticated or missing ID:", { isAuthenticated, userId: user?.id });
         toast.error("Please log in to edit posts");
+=======
+      if (!isAuthenticated) {
+        toast.error("You must be logged in to edit posts");
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
         navigate("/login");
         return;
       }
 
+<<<<<<< HEAD
       if (!id) {
         toast.error("Post ID is missing");
         navigate("/");
@@ -60,6 +83,22 @@ export default function EditPost() {
         //   return;
         // }
 
+=======
+      if (!id) return;
+
+      try {
+        setIsLoading(true);
+        const postData = await getPostById(id);
+        console.log("Fetched post data:", postData);
+        
+        // Check if the post belongs to the current user - compare IDs as strings to handle type mismatches
+        if (postData.author.id.toString() !== user?.id?.toString()) {
+          toast.error("You can only edit your own posts");
+          navigate("/my-posts");
+          return;
+        }
+        
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
         setPost(postData);
         setTitle(postData.title);
         setContent(postData.content);
@@ -67,11 +106,18 @@ export default function EditPost() {
       } catch (error) {
         console.error("Error fetching post:", error);
         toast.error("Failed to load post");
+<<<<<<< HEAD
         navigate("/");
+=======
+        navigate("/my-posts");
+      } finally {
+        setIsLoading(false);
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
       }
     };
 
     fetchPost();
+<<<<<<< HEAD
   }, [id, navigate, isAuthenticated, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,11 +139,25 @@ export default function EditPost() {
     try {
       const updateData = {
         id: id!,
+=======
+  }, [id, isAuthenticated, navigate, user?.id]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+    
+    try {
+      setIsSaving(true);
+      
+      const updateData: PostUpdateData = {
+        id,
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
         title,
         content,
         featured_image: featured_image || undefined
       };
       
+<<<<<<< HEAD
       await updatePost(updateData);
       toast.success("Post updated successfully");
       navigate(`/post/${id}`);
@@ -111,6 +171,29 @@ export default function EditPost() {
 
   if (!isAuthenticated || !user?.id) {
     return null;
+=======
+      console.log("Sending update data:", updateData);
+      await updatePost(updateData);
+      toast.success("Post updated successfully");
+      navigate(`/post/${id}`);
+    } catch (error) {
+      console.error("Error updating post:", error);
+      toast.error("Failed to update post");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="animate-pulse space-y-6 w-full max-w-3xl">
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto"></div>
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        </div>
+      </div>
+    );
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
   }
 
   return (
@@ -137,7 +220,13 @@ export default function EditPost() {
           
           <CardContent className="space-y-4">
             <div>
+<<<<<<< HEAD
               <Label htmlFor="title">Title</Label>
+=======
+              <label htmlFor="title" className="block text-sm font-medium mb-1">
+                Title
+              </label>
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
               <Input
                 id="title"
                 value={title}
@@ -149,7 +238,13 @@ export default function EditPost() {
             </div>
             
             <div>
+<<<<<<< HEAD
               <Label htmlFor="content">Content</Label>
+=======
+              <label htmlFor="content" className="block text-sm font-medium mb-1">
+                Content
+              </label>
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
               <Textarea
                 id="content"
                 value={content}
@@ -161,7 +256,13 @@ export default function EditPost() {
             </div>
             
             <div>
+<<<<<<< HEAD
               <Label htmlFor="featured_image">Featured Image URL (optional)</Label>
+=======
+              <label htmlFor="featured_image" className="block text-sm font-medium mb-1">
+                Featured Image URL (optional)
+              </label>
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
               <Input
                 id="featured_image"
                 value={featured_image}
@@ -197,10 +298,17 @@ export default function EditPost() {
             </Button>
             <Button 
               type="submit" 
+<<<<<<< HEAD
               disabled={isSubmitting}
               className="bg-primary hover:bg-primary/90 transition-colors"
             >
               {isSubmitting ? "Saving..." : "Save Changes"}
+=======
+              disabled={isSaving}
+              className="bg-primary hover:bg-primary/90 transition-colors"
+            >
+              {isSaving ? "Saving..." : "Update Post"}
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
             </Button>
           </CardFooter>
         </form>

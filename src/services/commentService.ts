@@ -93,4 +93,8 @@ export const createComment = async (postId: string, content: string): Promise<Co
     console.error("Error creating comment:", error);
     throw error;
   }
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e

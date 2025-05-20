@@ -28,14 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     if (storedToken && storedUser) {
       setToken(storedToken);
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Failed to parse user data:', error);
-        localStorage.removeItem('user');
-      }
+      setUser(JSON.parse(storedUser));
     }
     
     setIsLoading(false);
@@ -173,17 +166,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await api.put('/user/updateUserProfile', payload);
       const updatedUser = response.data;
       
-      const newUserData = {
-        ...user,
-        id: user?.id,
-        name: updatedUser.name || updatedUser.username,
-        bio: updatedUser.bio,
-        avatar: updatedUser.avatar || updatedUser.avatarUrl,
-        email: updatedUser.email
-      };
-      
-      setUser(newUserData);
-      localStorage.setItem('user', JSON.stringify(newUserData));
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
       
       toast.success("Profile updated successfully");
     } catch (error) {

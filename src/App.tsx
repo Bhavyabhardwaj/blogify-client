@@ -36,6 +36,43 @@ const App = () => {
     const darkTheme = initializeTheme();
     setIsDark(darkTheme);
   }, []);
+<<<<<<< HEAD
+=======
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider initialValue={isDark}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/post/:id" element={<PostDetail />} />
+                  <Route path="/create-post" element={<CreatePost />} />
+                  <Route path="/edit-post/:id" element={<EditPost />} />
+                  <Route path="/my-posts" element={<UserPosts />} />
+                  <Route path="/bookmarks" element={<Bookmarks />} />
+                  <Route path="/search" element={<Search />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Layout>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
 
   return (
     <QueryClientProvider client={queryClient}>

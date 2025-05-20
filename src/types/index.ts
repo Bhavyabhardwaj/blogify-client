@@ -65,6 +65,7 @@ export interface PostCreateData {
   title: string;
   content: string;
   featured_image?: string;
+  tags?: Tag[] | []; // Add tags field
   tagIds?: string[];
 }
 

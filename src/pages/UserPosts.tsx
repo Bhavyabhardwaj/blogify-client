@@ -23,12 +23,13 @@ import {
   DialogTitle, 
 } from "@/components/ui/dialog";
 import { Edit, Trash } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function UserPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,11 +42,19 @@ export default function UserPosts() {
       try {
         const userPosts = await getUserPosts();
         
+<<<<<<< HEAD
         // Process the posts to ensure valid date formats and number types
         const processedPosts = userPosts.map(post => ({
           ...post,
           // Ensure createdAt is a valid date string or null/undefined, parse explicitly
           createdAt: post.createdAt ? parseISO(post.createdAt) : null, // Use parseISO here
+=======
+        // Process the posts to ensure valid date formats
+        const processedPosts = userPosts.map(post => ({
+          ...post,
+          // Do not override existing createdAt dates
+          createdAt: post.createdAt || new Date().toISOString(),
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
           // Ensure likes and comments are numbers
           likes: typeof post.likes === 'number' ? post.likes : 0,
           comments: typeof post.comments === 'number' ? post.comments : 0
@@ -79,6 +88,10 @@ export default function UserPosts() {
     }
   };
 
+  const handleEdit = (postId: string) => {
+    navigate(`/edit-post/${postId}`);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -88,7 +101,12 @@ export default function UserPosts() {
   }
 
   return (
-    <div className="py-8">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="py-8"
+    >
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">My Posts</h1>
@@ -112,7 +130,7 @@ export default function UserPosts() {
           </TableHeader>
           <TableBody>
             {posts.map(post => (
-              <TableRow key={post.id}>
+              <TableRow key={post.id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-medium">
                   <div className="truncate max-w-[400px]">
                     <Button 
@@ -124,11 +142,15 @@ export default function UserPosts() {
                     </Button>
                   </div>
                 </TableCell>
+<<<<<<< HEAD
                 <TableCell>{
                   post.createdAt ?
                   format(post.createdAt, 'PPpp') :
                   'Unknown date'
                 }</TableCell>
+=======
+                <TableCell>{formatDate(post.createdAt)}</TableCell>
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
                 <TableCell>{post.likes || 0}</TableCell>
                 <TableCell>{post.comments || 0}</TableCell>
                 <TableCell className="text-right">
@@ -137,6 +159,10 @@ export default function UserPosts() {
                       variant="ghost" 
                       size="icon"
                       onClick={() => handleEdit(post.id)}
+<<<<<<< HEAD
+=======
+                      className="hover:bg-primary/10 transition-colors"
+>>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
                     >
                       <Edit size={18} />
                     </Button>
@@ -144,6 +170,7 @@ export default function UserPosts() {
                       variant="ghost" 
                       size="icon"
                       onClick={() => setPostToDelete(post)}
+                      className="hover:bg-destructive/10 transition-colors"
                     >
                       <Trash size={18} />
                     </Button>
@@ -189,6 +216,6 @@ export default function UserPosts() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
 }
