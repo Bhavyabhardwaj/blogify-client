@@ -71,15 +71,9 @@ export function Header() {
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <Button
-<<<<<<< HEAD
               variant="ghost"
               className="w-full justify-start text-sm font-normal text-muted-foreground md:w-40 lg:w-64"
               onClick={handleSearchClick}
-=======
-              variant="outline"
-              onClick={handleSearchClick}
-              className="inline-flex items-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground px-4 py-2 relative h-8 w-full justify-start text-muted-foreground sm:pr-12 md:w-40 lg:w-64"
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
             >
               <Search className="mr-2 h-4 w-4" />
               Search posts...
