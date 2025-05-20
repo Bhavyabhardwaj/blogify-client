@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toggleTheme } from '@/lib/utils';
 
@@ -14,11 +10,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ 
   children, 
-<<<<<<< HEAD
-  initialValue = true 
-=======
   initialValue = false 
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
 }: { 
   children: ReactNode; 
   initialValue?: boolean;

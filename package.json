@@ -46,11 +46,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
-<<<<<<< HEAD
     "framer-motion": "^12.12.1",
-=======
-    "framer-motion": "^11.18.2",
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
@@ -85,5 +81,9 @@
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1"
+  },
+  "overrides": {
+    "rollup": "^4.0.0",
+    "@types/estree": "^1.0.0"
   }
 }

@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -55,12 +51,8 @@ export default function Profile() {
       console.log("Updating profile with:", { name, bio, avatar });
       await updateProfile({ name, bio, avatar });
       toast.success("Profile updated successfully");
-<<<<<<< HEAD
-    } catch (error: any) {
-=======
       setInitials(getInitials(name)); // Update initials after successful update
     } catch (error) {
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
       console.error("Profile update failed:", error);
       toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {

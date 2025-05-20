@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from "sonner";
 
 // Define the base URL for API requests
-const API_BASE_URL = 'http://localhost:4000/api';
+const API_BASE_URL = 'https://blogify-bhavya.up.railway.app/api';
 
 // Create an axios instance with default config
 const api = axios.create({

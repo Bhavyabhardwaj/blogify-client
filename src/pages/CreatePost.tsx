@@ -37,13 +37,9 @@ export default function CreatePost() {
       const postData = {
         title: title.trim(),
         content: content.trim(),
-<<<<<<< HEAD
-        featured_image: featuredImage.trim() || null // Use null if empty
-=======
         featured_image: featuredImage.trim() || null, // Use null if empty
         tags: [], // Always include an empty tags array
         tagIds: [] // Always include an empty tagIds array
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
       };
 
       console.log("Sending post data:", postData); // Debug log to see what's being sent

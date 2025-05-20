@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
 import { useState, FormEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,7 +24,6 @@ export function CommentSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
-<<<<<<< HEAD
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -38,17 +33,6 @@ export function CommentSection({
       return;
     }
 
-=======
-  
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    
-    // Validate content
-    if (!content.trim() || isSubmitting) {
-      return;
-    }
-
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
     // Check if user is authenticated
     if (!isAuthenticated) {
       navigate("/login");
@@ -71,15 +55,10 @@ export function CommentSection({
 
   return (
     <div className="mt-8">
-<<<<<<< HEAD
       <h3 className="text-xl font-semibold mb-4">
         Comments ({comments ? comments.length : 0})
       </h3>
 
-=======
-      <h3 className="text-xl font-semibold mb-4">Comments ({comments ? comments.length : 0})</h3>
-      
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
       {isAuthenticated ? (
         <form onSubmit={handleSubmit} className="mb-6">
           <Textarea
@@ -103,18 +82,13 @@ export function CommentSection({
           <Button onClick={() => navigate("/login")}>Sign In</Button>
         </div>
       )}
-<<<<<<< HEAD
 
-=======
-      
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
       {comments && comments.length > 0 ? (
         <div className="space-y-6">
           {comments.map((comment) => (
             <div key={comment.id} className="animate-fade-in">
               <div className="flex gap-3">
                 <Avatar className="h-10 w-10">
-<<<<<<< HEAD
                   <AvatarImage
                     src={comment.author?.avatar}
                     alt={comment.author?.name}
@@ -122,19 +96,11 @@ export function CommentSection({
                   <AvatarFallback>
                     {getInitials(comment.author?.name || "")}
                   </AvatarFallback>
-=======
-                  <AvatarImage src={comment.author?.avatar} alt={comment.author?.name} />
-                  <AvatarFallback>{getInitials(comment.author?.name || "")}</AvatarFallback>
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
                 </Avatar>
                 <div className="w-full">
                   <div className="flex items-baseline justify-between">
                     <h4 className="font-medium">
-<<<<<<< HEAD
-                      {comment.author?.name || user?.name || "Anonymous"}{" "}
-=======
-                      {comment.author?.name || "Anonymous"}
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
+                      {comment.author?.name || user?.name || "Anonymous"}
                     </h4>
                     <span className="text-xs text-muted-foreground">
                       {formatDate(comment.createdAt)}

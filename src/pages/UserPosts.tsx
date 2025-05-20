@@ -42,19 +42,11 @@ export default function UserPosts() {
       try {
         const userPosts = await getUserPosts();
         
-<<<<<<< HEAD
         // Process the posts to ensure valid date formats and number types
         const processedPosts = userPosts.map(post => ({
           ...post,
-          // Ensure createdAt is a valid date string or null/undefined, parse explicitly
-          createdAt: post.createdAt ? parseISO(post.createdAt) : null, // Use parseISO here
-=======
-        // Process the posts to ensure valid date formats
-        const processedPosts = userPosts.map(post => ({
-          ...post,
-          // Do not override existing createdAt dates
+          // Keep createdAt as a string, just ensure it's valid
           createdAt: post.createdAt || new Date().toISOString(),
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
           // Ensure likes and comments are numbers
           likes: typeof post.likes === 'number' ? post.likes : 0,
           comments: typeof post.comments === 'number' ? post.comments : 0
@@ -86,10 +78,6 @@ export default function UserPosts() {
       console.error("Error deleting post:", error);
       toast.error("Failed to delete post");
     }
-  };
-
-  const handleEdit = (postId: string) => {
-    navigate(`/edit-post/${postId}`);
   };
 
   if (isLoading) {
@@ -142,15 +130,11 @@ export default function UserPosts() {
                     </Button>
                   </div>
                 </TableCell>
-<<<<<<< HEAD
                 <TableCell>{
                   post.createdAt ?
-                  format(post.createdAt, 'PPpp') :
+                  format(parseISO(post.createdAt), 'PPpp') :
                   'Unknown date'
                 }</TableCell>
-=======
-                <TableCell>{formatDate(post.createdAt)}</TableCell>
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
                 <TableCell>{post.likes || 0}</TableCell>
                 <TableCell>{post.comments || 0}</TableCell>
                 <TableCell className="text-right">
@@ -159,10 +143,7 @@ export default function UserPosts() {
                       variant="ghost" 
                       size="icon"
                       onClick={() => handleEdit(post.id)}
-<<<<<<< HEAD
-=======
                       className="hover:bg-primary/10 transition-colors"
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
                     >
                       <Edit size={18} />
                     </Button>

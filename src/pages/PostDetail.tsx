@@ -1,7 +1,6 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getPostById, likePost, unlikePost, bookmarkPost, removeBookmark } from "@/services/blogService";
+import { getPostById, likePost, unlikePost, bookmarkPost, removeBookmark, getLikes, getBookmarkIds } from "@/services/blogService";
 import { getComments, createComment } from "@/services/commentService";
 import { Post, Comment } from "@/types";
 import { formatDate, getInitials } from "@/lib/utils";
@@ -20,61 +19,45 @@ export default function PostDetail() {
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
+  // Define fetch function outside useEffect
   const fetchPostAndComments = useCallback(async () => {
-    if (!id) {
-      toast.error("Post ID is missing");
-      navigate("/");
-      return;
-    }
-
     try {
       setIsLoading(true);
-      console.log("Fetching post and comments for ID:", id);
+      setError(null);
+
+      if (!id) {
+        // Handle missing ID, perhaps navigate back or show an error message
+        console.error('Post ID is missing');
+        setError('Post not found'); // Set an error to display
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('Fetching post and comments for ID:', id);
       
+      // Fetch post and comments in parallel
       const [postData, commentsData] = await Promise.all([
         getPostById(id),
         getComments(id)
       ]);
-      
-      console.log("Fetched post data:", postData);
-      console.log("Fetched comments data:", commentsData);
-      
-      if (!postData || !postData.id) {
-        console.error("Invalid post data:", postData);
-        toast.error("Post not found");
-        navigate("/");
-        return;
-      }
-      
-      // Ensure likes is a number
-      const processedPost = { 
-        ...postData,
-        likes: typeof postData.likes === 'number' ? postData.likes : 0,
-        // Update comments count to match actual comments
-        comments: commentsData?.length || 0
-      };
-      
-      setPost(processedPost);
-      setComments(commentsData || []);
+
+      setPost(postData);
+      setComments(commentsData);
     } catch (error: any) {
-      console.error("Error fetching post details:", error);
-      if (error.message === "Post not found") {
-        toast.error("Post not found");
-      } else {
-        toast.error(error.response?.data?.message || "Failed to load post");
-      }
-      navigate("/");
+      console.error('Error fetching post details:', error);
+      setError(error.message || 'Failed to load post');
     } finally {
       setIsLoading(false);
     }
-  }, [id, navigate]);
+  }, [id]); // Add id as a dependency
 
   useEffect(() => {
     fetchPostAndComments();
-  }, [fetchPostAndComments]);
+  }, [fetchPostAndComments]); // Depend on the memoized function
 
   const handleLike = async () => {
     if (!isAuthenticated) {
@@ -105,7 +88,7 @@ export default function PostDetail() {
       console.error("Error updating like:", error);
       toast.error("Failed to update like");
       // Revert UI change on error
-      fetchPostAndComments();
+      fetchPostAndComments(); // Now fetchPostAndComments is defined
     }
   };
 
@@ -135,7 +118,7 @@ export default function PostDetail() {
       console.error("Error updating bookmark:", error);
       toast.error("Failed to update bookmark");
       // Revert UI change on error
-      fetchPostAndComments();
+      fetchPostAndComments(); // Now fetchPostAndComments is defined
     }
   };
 
@@ -149,17 +132,23 @@ export default function PostDetail() {
       const newComment = await createComment(postId, content);
       
       // Create a properly formatted comment with author info that matches Comment type
+      // We can use the user object from AuthContext since the user is logged in to comment
       const commentWithAuthor: Comment = {
         ...newComment,
         author: {
           id: user?.id || '',
-          name: user?.name || 'Anonymous',
-          avatar: user?.avatar || '',
+          name: user?.name || user?.username || 'Anonymous',
+          avatar: user?.avatar || user?.avatarUrl || '',
           email: user?.email || '',
-          // Add required fields for User type
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
+          // Add required fields for User type if not present in comment response
+          createdAt: newComment.createdAt || new Date().toISOString(),
+          updatedAt: newComment.updatedAt || new Date().toISOString()
+        },
+        // Ensure postId is included if not in the response
+        postId: newComment.postId || postId,
+        // Ensure createdAt and updatedAt are strings
+        createdAt: typeof newComment.createdAt === 'string' ? newComment.createdAt : new Date(newComment.createdAt).toISOString(),
+        updatedAt: typeof newComment.updatedAt === 'string' ? newComment.updatedAt : new Date(newComment.updatedAt).toISOString()
       };
       
       setComments(prevComments => [commentWithAuthor, ...prevComments]);
@@ -173,10 +162,11 @@ export default function PostDetail() {
         });
       }
       
-      // Force re-fetch to ensure consistency
+      // Force re-fetch to ensure consistency after a short delay
       setTimeout(() => {
-        fetchPostAndComments();
+        fetchPostAndComments(); // Now fetchPostAndComments is defined
       }, 500);
+
     } catch (error) {
       console.error("Error adding comment:", error);
       toast.error("Failed to add comment");
@@ -204,6 +194,15 @@ export default function PostDetail() {
             <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh]">
+        <h2 className="text-2xl font-semibold mb-4">Error: {error}</h2>
+        <Button onClick={() => navigate("/")}>Back to Home</Button>
       </div>
     );
   }

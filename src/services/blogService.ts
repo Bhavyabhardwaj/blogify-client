@@ -71,10 +71,7 @@ export const getPostById = async (id: string): Promise<Post> => {
     const response = await api.get(`/posts/${id}`);
     console.log("Post response data:", response.data);
     
-<<<<<<< HEAD
-=======
     // Check if response data is null or undefined
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
     if (!response.data) {
       console.error("Post data is null or undefined");
       throw new Error("Post not found");
@@ -83,10 +80,7 @@ export const getPostById = async (id: string): Promise<Post> => {
     // Handle different response formats
     let postData = response.data;
     if (typeof postData === 'object') {
-<<<<<<< HEAD
-=======
       // Check for nested post data
->>>>>>> 4dca2e8011f1cae31420e26f74385e97d94f5d9e
       if (postData.post) {
         postData = postData.post;
       } else if (postData.data) {
